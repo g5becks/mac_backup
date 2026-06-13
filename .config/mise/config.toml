@@ -32,7 +32,6 @@ java   = "stable"
 "go:github.com/evilmartians/lefthook" = "latest"
 
 # ── Editors ───────────────────────────────────────────────────────────────────
-"ubi:neovim/neovim"                       = "latest"
 "cargo:helix-term"                        = "latest"    # binary is hx; dedup: also in brew as helix
 "go:github.com/zyedidia/micro/v2/cmd/micro" = "latest"
 
@@ -90,7 +89,6 @@ java   = "stable"
 "cargo:xh"   = "latest"
 
 # ── Command Runners ───────────────────────────────────────────────────────────
-"cargo:just"                              = "latest"
 "go:github.com/go-task/task/v3/cmd/task" = "latest"
 
 # ── Formatters & Linters ──────────────────────────────────────────────────────
@@ -122,31 +120,20 @@ java   = "stable"
 "cargo:aichat"                       = "latest"
 "npm:@google/gemini-cli"             = "latest"
 "npm:@smithery/cli"                  = "latest"
-"npm:task-master-ai"                 = "latest"
-"npm:@musistudio/claude-code-router" = "latest"
-"npm:@sourcegraph/amp"               = "latest"
-"npm:@qwen-code/qwen-code"           = "latest"
 
 # ── Misc NPM ──────────────────────────────────────────────────────────────────
 "npm:commitizen"            = "latest"
-"npm:@fission-ai/openspec"  = "latest"
-"npm:@github/copilot"       = "latest"
-"npm:@ionic/cli"            = "latest"
 "npm:ibm-openapi-validator" = "latest"
 "npm:npm-check-extras"      = "latest"
-"npm:trash-cli"             = "latest"
 "npm:corepack"              = "latest"
 
-# ── Cargo Extras (steel = scheme interpreter used for Neovim scripting) ───────
-"cargo:basalt-tui"            = "latest"
-"cargo:ck-search"             = "latest"
-"cargo:lazyactions"           = "latest"
-"cargo:orly"                  = "latest"
-"cargo:steel-interpreter"     = "latest"
-"cargo:steel-forge"           = "latest"
-"cargo:steel-language-server" = "latest"
-"cargo:todotxt-tui"           = "latest"
-"cargo:wrkflw"                = "latest"
+# ── Cargo Extras ──────────────────────────────────────────────────────────────
+"cargo:basalt-tui"  = "latest"
+"cargo:ck-search"   = "latest"
+"cargo:lazyactions" = "latest"
+"cargo:orly"        = "latest"
+"cargo:todotxt-tui" = "latest"
+"cargo:wrkflw"      = "latest"
 
 # ── Needs separate handling on WSL ────────────────────────────────────────────
 # apt install: git curl wget imagemagick ffmpegthumbnailer libwebp-dev
@@ -161,5 +148,4 @@ java   = "stable"
 # bats-file:   git clone github.com/bats-core/bats-file
 # bash-preexec: source from github.com/rcaloras/bash-preexec in your bashrc
 # fonts:        install on the Windows side (WSL shares the Windows font directory)
-# neovim:      ubi above works; alternatively: apt-add-repository ppa:neovim-ppa/unstable
 # docker:      Docker Desktop (Windows) with WSL2 integration, or apt install docker-ce
