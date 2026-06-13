@@ -1,0 +1,97 @@
+{
+  "mcpServers": {
+    "knowledge-graph": {
+      "type": "local",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-knowledge-graph",
+        "--memory-path",
+        "/Users/takinprofit/.aim"
+      ],
+      "tools": ["*"],
+      "env": {}
+    },
+    "sequential-thinking": {
+      "type": "local",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-sequential-thinking"
+      ],
+      "tools": ["*"]
+    },
+    "exa": {
+      "type": "http",
+      "url": "https://mcp.exa.ai/mcp?exaApiKey=00be5183-c23f-4309-8a48-6eea2c5206e8&enabledTools=%5B%22get_code_context_exa%22%2C%22web_search_exa%22%5D",
+      "tools": ["get_code_context_exa", "web_search_exa"]
+    },
+    "octocode": {
+      "type": "local",
+      "command": "npx",
+      "args": ["octocode-mcp@latest"],
+      "tools": ["*"],
+      "env": {
+        "GITHUB_TOKEN": "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"
+      }
+    },
+    "brave-search": {
+      "type": "local",
+      "command": "npx",
+      "args": ["-y", "@brave/brave-search-mcp-server"],
+      "tools": ["*"],
+      "env": {
+        "BRAVE_API_KEY": "BSA7vTnlxxVODRv1z0Du_vS-ygfP4OH"
+      }
+    },
+    "filesystem": {
+      "type": "local",
+      "command": "mcp-filesystem-server",
+      "args": ["/Users/takinprofit"],
+      "tools": ["*"]
+    },
+    "language-server-typescript": {
+      "type": "local",
+      "command": "mcp-language-server",
+      "args": [
+        "--workspace",
+        "/Users/takinprofit/Dev/agentx",
+        "--lsp",
+        "typescript-language-server"
+      ],
+      "tools": ["*"]
+    },
+    "language-server-go": {
+      "type": "local",
+      "command": "mcp-language-server",
+      "args": [
+        "--workspace",
+        "/Users/takinprofit/Dev/agentx",
+        "--lsp",
+        "gopls"
+      ],
+      "tools": ["*"]
+    },
+    "serena": {
+      "type": "local",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "/Users/takinprofit/Dev/agentx"
+      ],
+      "tools": ["*"]
+    },
+    "git": {
+      "type": "local",
+      "command": "uvx",
+      "args": ["mcp-server-git", "--repository", "/Users/takinprofit/Dev/agentx"],
+      "tools": ["*"]
+    }
+  }
+}
