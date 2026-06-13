@@ -1,10 +1,3 @@
-[language-server.csharp]
-command = "csharp-language-server"
-
-[[language]]
-name = "c-sharp"
-language-servers = ["csharp"]
-
 [[language]]
 name = "python"
 scope = "source.python"
@@ -106,11 +99,11 @@ args = ["--stdio"]
 
 [language-server.py_snippets]
 command = "snippets-ls"
-args = ["-config", "/Users/takinprofit/.config/helix/snippets/python.json"]
+args = ["-config", "~/.config/helix/snippets/python.json"]
 
 [language-server.ts_snippets]
 command = "snippets-ls"
-args = ["-config", "/Users/takinprofit/.config/helix/snippets/ts.json"]
+args = ["-config", "~/.config/helix/snippets/ts.json"]
 
 
 [language-server.sourcery]
@@ -167,3 +160,12 @@ command = "golangci-lint-langserver"
 
 [language-server.golangci-lint-lsp.config]
 command = ["golangci-lint", "run", "--output.json.path", "stdout", "--show-stats=false", "--issues-exit-code=1"]
+
+[[language]]
+name = "lua"
+auto-format = true
+language-servers = ["lua-language-server"]
+formatter = { command = "stylua", args = ["-"] }
+
+[language-server.lua-language-server]
+command = "lua-language-server"
