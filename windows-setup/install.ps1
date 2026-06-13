@@ -1,14 +1,20 @@
 # Windows setup script
 # Run in PowerShell as Administrator:  .\install.ps1
-# Verify any uncertain package IDs first with:  winget search <name>
+#
+# PowerToys replaces: Alfred, BetterSnapTool, ColorSlurp, Karabiner
+#   - PowerToys Run       = Spotlight-style launcher (Alt+Space)
+#   - FancyZones          = window snap layouts
+#   - Color Picker        = system-wide color picker
+#   - Keyboard Manager    = key remapping
 
-$packages = @(
-    # ── Terminal & Window Management ──────────────────────────────────────────
-    "Microsoft.PowerToys",          # Snap layouts, color picker, keyboard remapper, spotlight-style launcher
-    "wez.wezterm",                  # Terminal emulator
+$wingetPackages = @(
+    # ── Utilities ─────────────────────────────────────────────────────────────
+    "Microsoft.PowerToys",
 
-    # ── Browsers ─────────────────────────────────────────────────────────────
-    "Google.Chrome",
+    # ── Terminal ──────────────────────────────────────────────────────────────
+    "wez.wezterm",
+
+    # ── Browser ───────────────────────────────────────────────────────────────
     "Mozilla.Firefox.DeveloperEdition",
 
     # ── Communication ─────────────────────────────────────────────────────────
@@ -18,37 +24,31 @@ $packages = @(
     # ── Security ──────────────────────────────────────────────────────────────
     "Bitwarden.Bitwarden",
 
-    # ── Office & Productivity ─────────────────────────────────────────────────
-    "ONLYOFFICE.DesktopEditors",
+    # ── Productivity ──────────────────────────────────────────────────────────
     "Canva.Canva",
-    "Obsidian.Obsidian",
+    "ONLYOFFICE.DesktopEditors",
 
     # ── Media ─────────────────────────────────────────────────────────────────
-    "Spotube.Spotube",
     "Bytedance.CapCut",
 
-    # ── Development ───────────────────────────────────────────────────────────
-    "Microsoft.VisualStudioCode",   # Install the WSL extension after setup
-    "Zed.Zed",
-    "JetBrains.Toolbox",            # Install WebStorm from inside Toolbox
-    "SourceGit.SourceGit",
-
-    # ── Utilities ─────────────────────────────────────────────────────────────
-    "7zip.7zip",
-    "Microsoft.PowerShell"          # Latest PowerShell (pwsh), separate from built-in Windows PS
+    # ── AI ────────────────────────────────────────────────────────────────────
+    "Google.Antigravity"
 )
 
-foreach ($pkg in $packages) {
+foreach ($pkg in $wingetPackages) {
     Write-Host "Installing $pkg..." -ForegroundColor Cyan
     winget install --id $pkg -e --accept-source-agreements --accept-package-agreements
 }
 
+# X (Twitter) — Spring replacement, installed from Microsoft Store
+Write-Host "Installing X (Twitter) from Microsoft Store..." -ForegroundColor Cyan
+winget install --id 9NBLGGH5L9XT --source msstore --accept-package-agreements
+
 Write-Host ""
 Write-Host "Done. Manual steps remaining:" -ForegroundColor Green
 Write-Host "  1. Copy wezterm.lua to C:\Users\$env:USERNAME\.wezterm.lua"
-Write-Host "  2. Install Cartograph CF font (or swap to JetBrainsMono Nerd Font in wezterm.lua)"
-Write-Host "  3. In VS Code: install the 'WSL' extension and set WSL as default profile"
-Write-Host "  4. In JetBrains Toolbox: install WebStorm"
-Write-Host "  5. hide.me VPN: download from hide.me/en/download (no winget package)"
-Write-Host "  6. TradingView: use the web app or Microsoft Store"
-Write-Host "  7. Run 'wsl --install' if WSL is not already set up"
+Write-Host "     (find it in your yadm repo under windows-setup/wezterm.lua)"
+Write-Host "  2. Install Cartograph CF font — or edit wezterm.lua to use JetBrainsMono Nerd Font"
+Write-Host "  3. Run 'wsl --install' if WSL is not already set up, then restore yadm backup"
+Write-Host ""
+Write-Host "Verify any failed packages with: winget search <name>" -ForegroundColor Yellow
