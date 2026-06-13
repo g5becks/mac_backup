@@ -1,0 +1,170 @@
+
+# Add custom completion functions path before Zim initialization
+fpath+=~/.zfunc
+
+# Check if the shell is interactive
+if [[ $- == *i* ]]; then
+    # eval "$(zellij setup --generate-auto-start zsh)"
+fi
+
+[[ "$TERM_PROGRAM" == "vscode" ]] && . "$(code --locate-shell-integration-path zsh)"
+
+# octocode mcp
+export BETA="1"
+export ENABLE_TOOLS="githubSearchPullRequests"
+
+# Load sensitive configuration (API keys, tokens)
+# This file contains API keys and should be kept secure
+if [[ -f "$HOME/.zshrc_secrets" ]]; then
+    source "$HOME/.zshrc_secrets"
+else
+    echo "Warning: ~/.zshrc_secrets not found. Some functionality may be limited."
+fi
+
+# Carapace bridges configuration (optional)
+export CARAPACE_BRIDGES="zsh,bash,inshellisense"
+export TERM="xterm-256color"
+export EDITOR="hx"
+export VISUAL="hx"
+export CFG="$HOME/.config"
+export XDG_CONFIG_HOME="$HOME/.config"
+export GOPATH=$HOME/go
+export GOBIN=$GOPATH/bin
+export GOMODCACHE=$GOPATH/pkg/mod
+
+# mise manages all tool paths on Linux
+eval "$(~/.local/bin/mise activate zsh)"
+
+# Define function to kill processes on a specific port
+function findandkill() {
+    port=$(lsof -n -i4TCP:$1 | grep LISTEN | awk '{print $2}')
+    if [ -n "$port" ]; then
+        kill -9 $port
+    fi
+}
+
+# Alias for the findandkill function
+alias killport=findandkill
+
+# Python executable for UV
+export UV_PYTHON=$(which python3)
+
+# Function to print the current working directory
+function __prompt_cwd() {
+    echo -n $(pwd)
+}
+
+# Custom yazi function
+function yy() {
+    tmp=$(mktemp -t "yazi-cwd.XXXXXX")
+    yazi "$@" --cwd-file="$tmp"
+    cwd=$(cat "$tmp")
+    if [[ -n "$cwd" && "$cwd" != "$PWD" ]]; then
+        cd "$cwd"
+    fi
+    rm -f "$tmp"
+}
+
+# Aliases
+alias untar='tar -zxvf'
+alias wget='wget -c'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+alias .....='cd ../../../..'
+alias ......='cd ../../../../..'
+alias dir='dir --color=auto'
+alias vdir='vdir --color=auto'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias top='glances'
+alias diff='delta'
+alias du='dust'
+alias open_hx_lang="hx $CFG/helix/languages.toml"
+alias open_hx_conf="hx $CFG/helix/config.toml"
+alias open_yazi_conf="hx $CFG/yazi/yazi.toml"
+alias open_br_conf="hx $CFG/broot/conf.hjson"
+alias open_br_verbs="hx $CFG/broot/verbs.hjson"
+alias man='tldr'
+alias ps='procs'
+alias open_zsh="hx $HOME/.zshrc"
+alias open_tools_cfg="hx $CFG/zellij/layouts/tools.kdl"
+alias open_ai_cfg="hx $CFG/zellij/layouts/ai.kdl"
+function update_zsh() {
+    unfunction claude claudette glm copilot wingman 2>/dev/null
+    source $HOME/.zshrc
+}
+alias ls='eza -a'
+alias cat='bat'
+
+# Claude CLI functions with isolated configs
+function claude() {
+    CLAUDE_CONFIG_DIR="$HOME/.claude" command claude "$@"
+}
+
+function claudette() {
+    CLAUDE_CONFIG_DIR="$HOME/.claudette" command claude "$@"
+}
+
+function claudius() {
+    CLAUDE_CONFIG_DIR="$HOME/.claudius" command claude "$@"
+}
+
+function glm() {
+    local GLM_ANTHROPIC_BASE="https://api.z.ai/api/anthropic"
+    local GLM_TOKEN="d519c8e6f93e4fe9993aad16173ad809.NCkpErdYkHg3qmHj"
+    local GLM_CFG="$HOME/.glm"
+    ANTHROPIC_BASE_URL="$GLM_ANTHROPIC_BASE" ANTHROPIC_AUTH_TOKEN="$GLM_TOKEN" CLAUDE_CONFIG_DIR="$GLM_CFG" command claude "$@"
+}
+
+# GitHub Copilot CLI functions with isolated configs
+function copilot() {
+    XDG_CONFIG_HOME="$HOME/.copilot" command copilot "$@"
+}
+
+function wingman() {
+    XDG_CONFIG_HOME="$HOME/.wingman" command copilot "$@"
+}
+
+# Zellij tools session launcher
+alias tools='zellij --layout ~/.config/zellij/layouts/tools.kdl attach -c tools'
+alias ai='zellij --layout ~/.config/zellij/layouts/ai.kdl attach -c ai'
+alias open_tools_kdl='hx ~/.config/zellij/layouts/tools.kdl'
+
+# Suppress default shell greeting
+unsetopt BEEP
+
+# Initialize completions
+autoload -Uz compinit
+compinit -d ~/.cache/zsh/zcompdump-${ZSH_VERSION}
+
+# Carapace completions
+eval "$(carapace _carapace)"
+
+# Virtual environment
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+
+# PATH — mise handles most tool paths; this covers anything outside mise
+export PATH="$HOME/bin:$HOME/.local/bin:$GOPATH:$GOBIN:$PATH"
+export MCFLY_DEBUG=""
+
+# Initialization scripts
+eval "$(mcfly init zsh)"
+eval "$(zoxide init zsh)"
+eval "$(starship init zsh)"
+eval "$(thefuck --alias)"
+eval "$(uv generate-shell-completion zsh)"
+eval "$(uvx --generate-shell-completion zsh)"
+
+# pnpm
+export PNPM_HOME="$HOME/.local/share/pnpm"
+if [[ ! "$PATH" == *"$PNPM_HOME"* ]]; then
+    export PATH="$PNPM_HOME:$PATH"
+fi
+
+function gi() { curl -sLw "\n" https://www.toptal.com/developers/gitignore/api/$@ ;}
+
+source "$HOME/.config/broot/launcher/bash/br"
+
+zstyle ':completion:*' menu select
