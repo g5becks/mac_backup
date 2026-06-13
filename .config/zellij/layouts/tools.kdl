@@ -1,0 +1,137 @@
+layout {
+    default_tab_template {
+        pane size=1 borderless=true {
+            plugin location="zellij:tab-bar"
+        }
+        children
+        pane size=2 borderless=true {
+            plugin location="zellij:status-bar"
+        }
+    }
+    
+    // Main terminal - always ready
+    tab name="terminal" focus=true {
+        pane {
+            cwd "."
+        }
+    }
+
+    
+    // File explorer
+    tab name="files" {
+        pane command="yazi" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // Search in files
+    tab name="search" {
+        pane command="scooter" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // Find files
+    tab name="find" {
+        pane command="fzf" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // Git TUI
+    tab name="git" {
+        pane command="lazygit" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // GitHub dashboard
+    tab name="github" {
+        pane command="gh" {
+            args "dash"
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // GitHub Actions
+    tab name="actions" {
+        pane command="lazyactions" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // Workflows
+    tab name="workflows" {
+        pane command="wrkflw" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // HTTP client
+    tab name="http" {
+        pane command="posting" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // Database
+    tab name="sql" {
+        pane command="lazysql" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // SSH manager
+    tab name="ssh" {
+        pane command="lazyssh" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // Docker
+    tab name="docker" {
+        pane command="lazydocker" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    // System monitor
+    tab name="system" {
+        pane command="btm" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+    tab name="snippets" {
+        pane command="nap" {
+            cwd "."
+            start_suspended true
+            close_on_exit true
+        }
+    }
+    
+}

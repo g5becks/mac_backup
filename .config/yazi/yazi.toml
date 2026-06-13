@@ -1,0 +1,29 @@
+[mgr]
+show_hidden = true
+
+[opener]
+# Open in Helix within the same terminal pane
+edit = [
+  { run = 'hx "$@"', block = true, desc = "Edit in Helix" }
+]
+
+# Open images with system default viewer
+open = [
+  { run = 'open "$@"', orphan = true, desc = "Open with system default" }
+]
+
+[open]
+rules = [
+  # Images - use system viewer
+  { mime = "image/*", use = "open" },
+  
+  # Text files - use Helix
+  { mime = "text/*", use = "edit" },
+  { mime = "application/json", use = "edit" },
+  { mime = "application/javascript", use = "edit" },
+  { mime = "*/xml", use = "edit" },
+  { mime = "inode/x-empty", use = "edit" },  # Empty files
+  
+  # Fallback: if no mime match, try to edit it anyway
+  { mime = "*", use = "edit" },
+]

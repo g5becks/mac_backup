@@ -1,0 +1,169 @@
+[language-server.csharp]
+command = "csharp-language-server"
+
+[[language]]
+name = "c-sharp"
+language-servers = ["csharp"]
+
+[[language]]
+name = "python"
+scope = "source.python"
+injection-regex = "python"
+file-types = ["py","pyi","py3","pyw",".pythonstartup",".pythonrc"]
+shebangs = ["python"]
+roots = [".", "pyproject.toml", "pyrightconfig.json"]
+comment-token = "#"
+language-servers = [
+  { name = "ruff"  },
+  { name = "basedpyright" },
+   {name = "sourcery"} ,
+    {name = "py_snippets"},
+]
+
+indent = { tab-width = 4, unit = "    " }
+auto-format = true
+
+[language.formatter]
+command = "ruff"
+args = ["format", "--stdin-filename", "."]
+
+[[language]]
+name = "typescript"
+scope = "source.ts"
+injection-regex = "(ts|typescript)"
+language-id = "typescript"
+file-types = ["ts", "mts", "cts"]
+shebangs = ["deno", "bun", "ts-node"]
+comment-token = "//"
+block-comment-tokens = { start = "/*", end = "*/" }
+language-servers = [ { name = "typescript-language-server", except-features = [ "format" ] }, {name = "biome"},{name = "sourcery"}, {name = "ts_snippets"}, {name = "eslint", except-features = [ "format" ]} ]
+indent = { tab-width = 2, unit = "  " }
+ auto-format = true
+formatter = { command = "biome", args = [
+"format",
+"--use-server",
+"--stdin-file-path=p.ts",
+] } 
+
+[[language]]
+name = "tsx"
+scope = "source.tsx"
+injection-regex = "(tsx)" # |typescript
+language-id = "typescriptreact"
+file-types = ["tsx"]
+roots = ["package.json", "tsconfig.json", "pnpm-lock.yaml", "tailwind.config.js", "vite.config.mts", "eslint.config.mjs"]
+comment-token = "//"
+block-comment-tokens = { start = "/*", end = "*/" }
+language-servers = [ { name = "typescript-language-server", except-features = [ "format" ] }, {name = "biome"}, {name = "sourcery", except-features = ["format"]}, {name = "ts_snippets", except-features = ["format"]}, {name = "eslint", except-features = ["format"]}, {name = "tailwindcss", except-features = ["format"]} ]
+indent = { tab-width = 2, unit = "  " }
+ auto-format = true
+formatter = { command = "biome", args = [
+"format",
+"--use-server",
+"--stdin-file-path=p.tsx",
+] } 
+
+[[language]]
+name = "hjson"
+scope = "source.hjson"
+injection-regex = "hjson"
+file-types = ["hjson"]
+indent = { tab-width = 2, unit = "  " }
+comment-token = "#"
+
+[[grammar]]
+name = "hjson"
+source = {git = "https://github.com/winston0410/tree-sitter-hjson", rev = "02fa3b79b3ff9a296066da6277adfc3f26cbc9e0"}
+
+[[language]]
+name = "yaml"
+scope = "source.yaml"
+file-types = ["yml", "yaml"]
+comment-token = "#"
+indent = { tab-width = 2, unit = "  " }
+language-servers = [ "yaml-language-server", "ansible-language-server" ]
+injection-regex = "yml|yaml"
+auto-format = true
+formatter = { command = "yamlfmt", args = ["-in"] }
+
+
+[[grammar]]
+name = "yaml"
+source = { git = "https://github.com/ikatyang/tree-sitter-yaml", rev = "0e36bed171768908f331ff7dff9d956bae016efb" }
+
+[language-server.ruff]
+command = "ruff"
+args = ["server","-v"]
+
+[language-server.ruff.config]
+documentFormatting = true 
+settings.run = "onSave"
+
+
+[language-server.pyright]
+command = "pyright-langserver"
+args = ["--stdio"]
+
+[language-server.py_snippets]
+command = "snippets-ls"
+args = ["-config", "/Users/takinprofit/.config/helix/snippets/python.json"]
+
+[language-server.ts_snippets]
+command = "snippets-ls"
+args = ["-config", "/Users/takinprofit/.config/helix/snippets/ts.json"]
+
+
+[language-server.sourcery]
+command = "sourcery"
+args = ["lsp"]
+
+[language-server.sourcery.config]
+extension_version = "helix" 
+editor_version = "helix-24.7"
+token = "user_4heRDUHvMbYMs8grlcyfICB0SCn3OXN_7fFkItvcCojcpsrFiIB88z7Wfe8"
+
+
+[language-server.eslint]
+command = "vscode-eslint-language-server"
+args = ["--stdio"]
+
+[language-server.eslint.config]
+validate = "on"
+experimental = { useFlatConfig = true }
+rulesCustomizations = []
+run = "onType"
+problems = { shortenToSingleLine = false }
+nodePath = ""
+
+[language-server.eslint.config.codeAction.disableRuleComment]
+enable = true
+location = "separateLine"
+
+[language-server.eslint.config.codeAction.showDocumentation]
+enable = true
+
+[language-server.eslint.config.workingDirectory]
+mode = "location"
+
+[language-server.biome]
+command = "biome"
+args = ["lsp-proxy"]
+display-messages = true
+
+[language-server.tailwindcss]
+command = "tailwindcss-language-server"
+args = ["--stdio"]
+
+[language-server.tailwindcss.config]
+experimental = {classRegex = "tw\\('([^']*)'\\)"}
+
+[[language]]
+name = "go"
+auto-format = true
+language-servers = [ "gopls", "golangci-lint-lsp" ]
+
+[language-server.golangci-lint-lsp]
+command = "golangci-lint-langserver"
+
+[language-server.golangci-lint-lsp.config]
+command = ["golangci-lint", "run", "--output.json.path", "stdout", "--show-stats=false", "--issues-exit-code=1"]

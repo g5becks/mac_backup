@@ -1,0 +1,23 @@
+# Nord Night Italic
+#
+# Based on the Nord Night theme, with italicized keywords for classes, functions, control flow, etc.
+
+inherits = 'nord-night'
+
+# Italicize keywords for classes, functions, control flow, etc.
+"keyword" = { fg = "nord11", modifiers = ["italic"] }
+"keyword.control" = { fg = "nord11", modifiers = ["italic"] }
+"keyword.control.conditional" = { fg = "nord11", modifiers = ["italic"] }
+"keyword.control.exception" = { fg = "nord11", modifiers = ["italic"] }
+"keyword.control.repeat" = { fg = "nord11", modifiers = ["italic"] }
+"keyword.control.return" = { fg = "nord11", modifiers = ["italic"] }
+"keyword.function" = { fg = "nord11", modifiers = ["italic"] }
+"keyword.operator" = { fg = "nord11", modifiers = ["italic"] }
+
+"function.special" = { fg = "nord9", modifiers = ["italic"] }
+
+
+# Other italicized elements
+"label" = { fg = "nord7", modifiers = ["italic"] }
+
+# Retain all other settings from the base 'nord-night' theme.

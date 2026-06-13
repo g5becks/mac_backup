@@ -1,0 +1,53 @@
+theme = 'carbon'
+
+[editor.file-picker]
+hidden = false
+
+[editor.soft-wrap]
+enable = true
+
+
+[editor.inline-diagnostics]
+cursor-line = "hint" # show warnings and errors on the cursorline inline
+other-lines = "hint"
+
+[editor.indent-guides]
+render = true
+character = "⏽"
+
+
+[editor]
+color-modes = true
+line-number = "relative"
+mouse = false
+# TODO: Enable rainbow brackets when upgrading to Helix nightly or next stable release (merged July 2024)
+# rainbow-brackets = true
+
+[editor.cursor-shape]
+insert = "bar"
+normal = "block"
+select = "underline"
+
+[editor.auto-pairs]
+'(' = ')'
+'{' = '}'
+'[' = ']'
+'"' = '"'
+'`' = '`'
+'<' = '>'
+"'" = "'"
+
+[editor.auto-save]
+focus-lost = true
+after-delay.enable = true
+
+
+[keys.normal]
+d = "delete_selection_noyank"
+C-q = [
+  ':sh rm -f /tmp/helix-yazi-chooser',
+  ':insert-output yazi "%{buffer_name}" --chooser-file=/tmp/helix-yazi-chooser',
+  ':insert-output echo "\\x1b[?1049h\\x1b[?2004h" > /dev/tty',
+  ':open %sh{cat /tmp/helix-yazi-chooser}',
+  ':redraw',
+]

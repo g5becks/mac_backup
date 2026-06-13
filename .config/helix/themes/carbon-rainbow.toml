@@ -1,0 +1,11 @@
+inherits = "carbon"
+
+# Rainbow brackets - cycling through vibrant colors from the carbon palette
+rainbow = [
+  "#78a9ff",  # blue40
+  "#3ddbd9",  # cyan40  
+  "#6fdc8c",  # green40
+  "#be95ff",  # purple40
+  "#ff7eb6",  # magenta30
+  "#fddc69",  # yellow40
+]

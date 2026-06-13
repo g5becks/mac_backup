@@ -1,0 +1,96 @@
+{
+  "shebang": {
+    "prefix": "shebang",
+    "body": ["#!/bin/bash"],
+    "description": "Shebang"
+  },
+  "echo": {
+    "prefix": "e",
+    "body": ["echo \"${0:Hello World}\""],
+    "description": "Echo"
+  },
+  "function": {
+    "prefix": "fn",
+    "body": ["${1:function_name}() {", "\t$0", "}"],
+    "description": "Function"
+  },
+  "function with definitions": {
+    "prefix": "fnd",
+    "body": [
+      "#######################################",
+      "# Description",
+      "# Globals:",
+      "# - EXPORT_1 : which contains ...",
+      "# Arguments:",
+      "# - \\$1 : the first paramter (eg. param1)",
+      "# Outputs:",
+      "# Returns:",
+      "#######################################",
+      "${1:lib}::${2:function_name}() {",
+      "  local -r ${3:PARAM_1}=\"\\${1:?\"${2:function_name} is missing a parameter\"}\"",
+      "  $0",
+      "  export ${4:EXPORT_1}",
+      "}"
+    ],
+    "description": "Function in a libary with definitions of params and exports"
+  },
+  "if": {
+    "prefix": "if",
+    "body": ["if [[ $1 ]]; then", "\t$0", "fi"],
+    "description": "if block"
+  },
+  "if else": {
+    "prefix": "ife",
+    "body": ["if [[ $1 ]]; then", "\t$2", "else", "\t$0", "fi"],
+    "description": "if else block"
+  },
+  "elif": {
+    "prefix": "elif",
+    "body": ["elif [[ $1 ]]; then", "\t$0"],
+    "description": "elif block"
+  },
+  "until": {
+    "prefix": "until",
+    "body": ["until [[ $1 ]]; do", "\t$0", "done"],
+    "description": "until block"
+  },
+  "main": {
+    "prefix": "main",
+    "body": ["main() {", "}", "", "main \"$@\""],
+    "description": "a main function declaration with passthrough of all paramters passed to the file"
+  },
+  "const": {
+    "prefix": "const",
+    "body": ["local -r ${1:VARIABLE}=\"${0}\""],
+    "description": "creates a local readonly variable ie. a constant (this is meant for use within functions only)"
+  },
+  "TODO": {
+    "prefix": "todo",
+    "body": ["# TODO: (${1:author}) ${0:description}"],
+    "description": "creates a local readonly variable ie. a constant"
+  },
+  "array": {
+    "prefix": "array",
+    "body": ["${1:MYARRAY}=(\"${2:element1}\" \"${3:element2}\")"],
+    "description": "Creates an array with two elements"
+  },
+  "forarray": {
+    "prefix": "forarray",
+    "body": [
+      "for ${0:element} in \\${${MYARRAY}[@]\\}; do",
+      "echo \\$${0:element}",
+      "done"
+    ],
+    "description": "Creates a loop echoing all variables in an array"
+  },
+  "forindex": {
+    "prefix": "forindex",
+    "body": [
+      "for ${0:i} in {${1:0}..${2:5}\\}; do",
+      "echo \\$${0:i}",
+      "echo \\${MYARRAY[${0:i}]}",
+      "done"
+    ],
+    "description": "Creates a loop echoing all indexes in a range"
+  }
+}
