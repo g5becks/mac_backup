@@ -39,13 +39,7 @@ config.integrated_title_buttons = { 'Hide', 'Maximize', 'Close' }
 config.integrated_title_button_style = 'MacOsNative'
 config.integrated_title_button_alignment = 'Right'
 
--- Environment variables to ensure Fish is found
-config.set_environment_variables = {
-    PATH = '/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin',
-}
-
--- Default program: Use Fish shell
-config.default_prog = { 'fish', '-l' }
+config.default_prog = { 'zsh', '-l' }
 
 -- Default working directory (optional, remove if you want to use home directory)
 -- config.default_cwd = "/Users/takinprofit"  -- or your preferred starting directory
@@ -129,18 +123,8 @@ config.mouse_bindings = {
 
 -- Launch menu for quick access
 config.launch_menu = {
-    {
-        label = 'fish',
-        args = { 'fish', '-l' },
-    },
-    {
-        label = 'zsh',
-        args = { 'zsh', '-l' },
-    },
-    {
-        label = 'bash',
-        args = { 'bash', '-l' },
-    },
+    { label = 'zsh',  args = { 'zsh',  '-l' } },
+    { label = 'bash', args = { 'bash', '-l' } },
 }
 
 -- Dynamic color scheme based on macOS appearance (optional)
