@@ -43,11 +43,9 @@ java   = "stable"
 "npm:bash-language-server"                         = "latest"
 "npm:typescript-language-server"                   = "latest"
 "npm:yaml-language-server"                         = "latest"
-"npm:@vue/language-server"                         = "latest"
 "npm:vscode-langservers-extracted"                 = "latest"
 "npm:@ansible/ansible-language-server"             = "latest"
 "npm:basedpyright"                                 = "latest"    # dedup: drops brew pyright, basedpyright supersedes it
-"npm:svelte-language-server"                       = "latest"
 
 # ── Go Dev Tools ───────────────────────────────────────────────────────────────
 "go:github.com/air-verse/air"                                 = "latest"
