@@ -22,7 +22,6 @@ java   = "stable"
 "cargo:ripgrep"    = "latest"    # binary is rg
 "cargo:mcfly"      = "latest"
 "cargo:yazi-fm"    = "latest"    # binary is yazi
-"cargo:zellij"     = "latest"
 "ubi:junegunn/fzf" = "latest"
 
 # ── Git ───────────────────────────────────────────────────────────────────────
