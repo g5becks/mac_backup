@@ -1,119 +1,23 @@
 # mac_backup
 
-Dotfiles and cross-platform setup for macOS and Windows + WSL.
+Dotfiles and remote development environment for macOS and headless Linux, built around [Moshi](https://getmoshi.app) for mobile-first coding.
 
 Managed with [yadm](https://yadm.io) (dotfiles) and [mise](https://mise.jdx.dev) (tools/runtimes).
 
 ---
 
-## New Machine Setup
+## What this repo is for
 
-### Step 1 — Windows apps (run in PowerShell as Administrator)
+This started as a Mac + Windows/WSL dotfiles backup. It's now built around a different workflow: **development happens on an always-on remote Linux server, accessed from a phone or tablet through Moshi** — not on a local laptop.
 
-Download and run the winget install script from this repo:
+The reasoning: local hardware (touchscreens, cramped keyboards, unreliable connectivity) is a bad fit for sustained coding, but a phone is always in hand. Moshi turns a phone into a real terminal into a machine that never sleeps, never loses your session on a dropped connection, and keeps long-running agents (Claude Code, build processes, dev servers) alive independent of whether your device is even open.
 
-```powershell
-# Download
-curl -o install.ps1 https://raw.githubusercontent.com/g5becks/mac_backup/main/windows-setup/install.ps1
+Two environments are covered here:
 
-# Run
-.\install.ps1
-```
+- **A headless Ubuntu VPS** — the actual development machine. No desktop environment, no GUI apps. Everything is terminal-based: Helix for editing, tmux/Herdr for session persistence, Claude Code and friends for agent-assisted development.
+- **macOS** — a secondary, optional environment for when a full keyboard, mouse, and monitor are actually available. Same Helix setup as the VPS — one editor config across both environments, nothing to duplicate or keep in sync.
 
-This installs: PowerToys, WezTerm, Firefox Developer Edition, Bitwarden, Discord, Telegram, Canva, CapCut, ONLYOFFICE, Antigravity, and the X (Twitter) app.
-
-> If any package fails, find the correct ID with `winget search <name>` and re-run:
-> `winget install --id <PackageID> -e`
-
----
-
-### Step 2 — WezTerm config
-
-Copy the WezTerm config from this repo to your Windows user profile:
-
-```powershell
-curl -o "$env:USERPROFILE\.wezterm.lua" https://raw.githubusercontent.com/g5becks/mac_backup/main/windows-setup/wezterm.lua
-```
-
-> **Font:** The config uses Cartograph CF. If you don't have it, open `~\.wezterm.lua`
-> and change the font line to `wezterm.font 'JetBrainsMono Nerd Font'`.
-
-WezTerm connects to WSL automatically once WSL is set up (Step 3).
-To verify your WSL distro name run `wsl --list` and update `wezterm.lua` if needed.
-
----
-
-### Step 3 — Install WSL
-
-In PowerShell as Administrator:
-
-```powershell
-wsl --install
-```
-
-Restart when prompted, then open WSL and set a username/password.
-
----
-
-### Step 4 — WSL bootstrap
-
-Inside WSL, download and run the bootstrap script:
-
-```bash
-curl -fLo wsl-bootstrap.sh \
-  https://raw.githubusercontent.com/g5becks/mac_backup/main/windows-setup/wsl-bootstrap.sh
-bash wsl-bootstrap.sh
-```
-
-This installs: apt system packages, mise, yadm, zimfw, and sets zsh as the default shell.
-
----
-
-### Step 5 — SSH key for GitHub
-
-```bash
-ssh-keygen -t ed25519 -C 'techstar.dev@hotmail.com' -f ~/.ssh/github
-cat ~/.ssh/github.pub
-```
-
-Add the printed public key to GitHub → **Settings → SSH and GPG keys → New SSH key**.
-
-Test it:
-
-```bash
-ssh -T git@github.com
-```
-
----
-
-### Step 6 — Restore dotfiles
-
-```bash
-~/.local/bin/yadm clone git@github.com:g5becks/mac_backup.git
-~/.local/bin/yadm alt
-```
-
-`yadm alt` activates OS-specific alternate files (`.zshrc`, `.ssh/config`, etc.).
-
----
-
-### Step 7 — Install all tools
-
-```bash
-mise install
-```
-
-This installs all runtimes and CLI tools defined in `~/.config/mise/config.toml`.
-
----
-
-### Step 8 — Finish
-
-```bash
-exec zsh
-```
-
-Your prompt, aliases, completions, and tools should all be active.
+Neither environment assumes the other is present. The VPS is the source of truth for active projects; macOS is a convenience layer on top of the same dotfiles.
 
 ---
 
@@ -121,38 +25,49 @@ Your prompt, aliases, completions, and tools should all be active.
 
 | Path | Description |
 |------|-------------|
-| `.config/mise/config.toml` | All runtimes and CLI tools (node, go, rust, python, helix, lazygit, etc.) |
+| `.config/mise/config.toml` | All runtimes and CLI tools (node, bun, go, rust, python, helix, herdr, lazygit, etc.) |
 | `.config/helix/` | Helix editor config and LSP setup |
-| `.config/zellij/` | Zellij terminal multiplexer layouts |
 | `.config/yazi/` | Yazi file manager config |
 | `.config/lazygit/config.yml` | Lazygit config |
 | `.config/starship.toml` | Starship prompt |
 | `.config/zsh/` | Zsh config files |
-| `.config/broot/` | Broot file navigator |
 | `.config/git/` | Global git ignore |
 | `.config/gh/config.yml` | GitHub CLI config |
 | `.config/agents/skills/` | Claude Code custom skills |
+| `.config/opencode/` | OpenCode config |
+| `.config/mcp-config.json` | MCP server config |
 | `.claude/settings.json` | Claude Code hooks and plugins |
 | `.gitconfig` | Global git config (name, email) |
-| `.wezterm.lua` | WezTerm config for macOS |
 | `.zshrc##os.Darwin` | macOS zsh config |
-| `.zshrc##os.Linux` | Linux/WSL zsh config |
-| `.ssh/config##os.Darwin` | macOS SSH config (includes colima) |
-| `.ssh/config##os.Linux` | Linux/WSL SSH config |
+| `.zshrc##os.Linux` | Linux (VPS) zsh config |
+| `.ssh/config##os.Darwin` | macOS SSH config |
+| `.ssh/config##os.Linux` | Linux SSH config |
 | `.zshenv` | Cargo env sourcing |
-| `windows-setup/install.ps1` | Winget install script |
-| `windows-setup/wezterm.lua` | WezTerm config for Windows + WSL |
-| `windows-setup/wsl-bootstrap.sh` | WSL initial setup script |
+| `bootstrap.sh` | Installs everything mise can't manage directly (apt packages, awscli, yadm, zimfw, bat-extras, bats-core + libs, bash-preexec, Docker) |
+
+**Not tracked in this repo, created manually per machine:**
+- `~/.zshrc_secrets` — API keys and tokens. Sourced automatically by `.zshrc##os.Linux` if present; a warning prints on shell start if it's missing. Keep this out of git.
 
 ---
 
-## macOS restore
+## Remote server setup (primary workflow)
 
-On a fresh Mac with yadm already installed:
+This is the full path from an empty VPS to a working Moshi + Claude Code environment.
+
+### Step 1 — Provision the server
+
+Any Ubuntu VPS works. Current setup: Contabo Cloud VPS 6 (6 vCPU, 12GB RAM, 200GB SSD), St. Louis / US-Central region — chosen for balanced latency across the continental US and to avoid the AT&T/Verizon band-compatibility issues that ruled out cheaper always-on hotspot alternatives.
+
+### Step 2 — First login (password auth)
+
+Moshi's Easy Pair setup needs an existing SSH session to bootstrap from — you can't Easy Pair into a server you've never logged into. Use any SSH client that supports plain password auth for this one-time step (e.g. Termius):
+
+- **Host:** your server's IP
+- **Port:** 22
+- **Username:** root
+- **Password:** set during provisioning
+
+### Step 3 — Install moshi-hook
 
 ```bash
-yadm clone git@github.com:g5becks/mac_backup.git
-yadm alt
-mise install
-exec zsh
-```
+curl -fsSL https://getmoshi.app/install.sh | sh
