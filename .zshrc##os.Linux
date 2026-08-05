@@ -1,11 +1,5 @@
-
 # Add custom completion functions path before Zim initialization
 fpath+=~/.zfunc
-
-# Check if the shell is interactive
-if [[ $- == *i* ]]; then
-    # eval "$(zellij setup --generate-auto-start zsh)"
-fi
 
 [[ "$TERM_PROGRAM" == "vscode" ]] && . "$(code --locate-shell-integration-path zsh)"
 
@@ -84,13 +78,9 @@ alias du='dust'
 alias open_hx_lang="hx $CFG/helix/languages.toml"
 alias open_hx_conf="hx $CFG/helix/config.toml"
 alias open_yazi_conf="hx $CFG/yazi/yazi.toml"
-alias open_br_conf="hx $CFG/broot/conf.hjson"
-alias open_br_verbs="hx $CFG/broot/verbs.hjson"
 alias man='tldr'
 alias ps='procs'
 alias open_zsh="hx $HOME/.zshrc"
-alias open_tools_cfg="hx $CFG/zellij/layouts/tools.kdl"
-alias open_ai_cfg="hx $CFG/zellij/layouts/ai.kdl"
 function update_zsh() {
     unfunction claude claudette glm copilot wingman 2>/dev/null
     source $HOME/.zshrc
@@ -127,11 +117,6 @@ function wingman() {
     XDG_CONFIG_HOME="$HOME/.wingman" command copilot "$@"
 }
 
-# Zellij tools session launcher
-alias tools='zellij --layout ~/.config/zellij/layouts/tools.kdl attach -c tools'
-alias ai='zellij --layout ~/.config/zellij/layouts/ai.kdl attach -c ai'
-alias open_tools_kdl='hx ~/.config/zellij/layouts/tools.kdl'
-
 # Suppress default shell greeting
 unsetopt BEEP
 
@@ -164,7 +149,5 @@ if [[ ! "$PATH" == *"$PNPM_HOME"* ]]; then
 fi
 
 function gi() { curl -sLw "\n" https://www.toptal.com/developers/gitignore/api/$@ ;}
-
-source "$HOME/.config/broot/launcher/bash/br"
 
 zstyle ':completion:*' menu select
