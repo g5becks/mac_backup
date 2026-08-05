@@ -133,17 +133,3 @@ herdr = "latest"
 "cargo:todotxt-tui" = "latest"
 "cargo:wrkflw"      = "latest"
 
-# ── Needs separate handling on WSL ────────────────────────────────────────────
-# apt install: git curl wget imagemagick ffmpegthumbnailer libwebp-dev
-#              libxml2-dev libfreetype6-dev pkgconf parallel p7zip-full
-#              xclip git-flow zsh zsh-autosuggestions zsh-completions
-# awscli v2:   official installer script (not pip/mise-compatible)
-# yadm:        curl -fLo ~/.local/bin/yadm https://github.com/TheLocehiliosan/yadm/raw/master/yadm
-# zimfw:       curl -fsSL https://raw.githubusercontent.com/zimfw/install/master/install.zsh | zsh
-# bat-extras:  bash scripts, clone github.com/eth-p/bat-extras
-# bats-core:   apt install bats  OR  git clone github.com/bats-core/bats-core
-# bats-assert: git clone github.com/bats-core/bats-assert
-# bats-file:   git clone github.com/bats-core/bats-file
-# bash-preexec: source from github.com/rcaloras/bash-preexec in your bashrc
-# fonts:        install on the Windows side (WSL shares the Windows font directory)
-# docker:      Docker Desktop (Windows) with WSL2 integration, or apt install docker-ce
