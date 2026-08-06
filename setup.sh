@@ -56,9 +56,10 @@ yadm alt
 
 # ── 7. System packages ───────────────────────────────────────────────────
 log "apt packages"
-apt install -y git curl wget unzip imagemagick ffmpegthumbnailer libwebp-dev \
+apt install -y build-essential git curl wget unzip imagemagick ffmpegthumbnailer libwebp-dev \
     libxml2-dev libfreetype6-dev pkgconf parallel p7zip-full \
     git-flow zsh zsh-autosuggestions
+
 
 # ── 8. awscli v2 ─────────────────────────────────────────────────────────
 log "awscli"
