@@ -110,7 +110,8 @@ gh                               = "latest"
 
 # ── Misc NPM ──────────────────────────────────────────────────────────────────
 "npm:commitizen"            = "latest"
-"npm:ibm-openapi-validator" = "latest"    # last run hit a trust-policy block on rollup@2.80.0 — investigate before excluding, see mise docs on trust_policy_excludes
+ "npm:ibm-openapi-validator" = { version = "latest", trust_policy_excludes = ["rollup@2.80.0"] }
+   # last run hit a trust-policy block on rollup@2.80.0 — investigate before excluding, see mise docs on trust_policy_excludes
 "npm:npm-check-extras"      = "latest"
 "npm:corepack"              = "latest"
 
