@@ -1,4 +1,3 @@
-cat > ~/setup.sh << 'SETUPEOF'
 #!/usr/bin/env bash
 # setup.sh — full reproducible setup for a fresh Ubuntu VPS.
 # Moshi + mise + yadm dotfiles + Claude Code, ready for mobile development.
