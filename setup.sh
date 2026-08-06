@@ -1,3 +1,4 @@
+cat > ~/setup.sh << 'SETUPEOF'
 #!/usr/bin/env bash
 # setup.sh — full reproducible setup for a fresh Ubuntu VPS.
 # Moshi + mise + yadm dotfiles + Claude Code, ready for mobile development.
@@ -58,8 +59,9 @@ yadm alt
 log "apt packages"
 apt install -y build-essential git curl wget unzip imagemagick ffmpegthumbnailer libwebp-dev \
     libxml2-dev libfreetype6-dev pkgconf parallel p7zip-full \
-    git-flow zsh zsh-autosuggestions
-
+    git-flow zsh zsh-autosuggestions \
+    libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
+    libffi-dev liblzma-dev libncurses-dev
 
 # ── 8. awscli v2 ─────────────────────────────────────────────────────────
 log "awscli"
@@ -117,20 +119,7 @@ grep -qxF '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' ~/.bashrc |
 # ── 13. Docker ────────────────────────────────────────────────────────────
 log "docker"
 if ! command -v docker >/dev/null 2>&1; then
-    apt install -y ca-certificates curl
-    install -m 0755 -d /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-    chmod a+r /etc/apt/keyrings/docker.asc
-    tee /etc/apt/sources.list.d/docker.sources > /dev/null <<EOF
-Types: deb
-URIs: https://download.docker.com/linux/ubuntu
-Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
-Components: stable
-Architectures: $(dpkg --print-architecture)
-Signed-By: /etc/apt/keyrings/docker.asc
-EOF
-    apt update
-    apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    curl -fsSL https://get.docker.com | sh
 fi
 
 # ── 14. Default shell ────────────────────────────────────────────────────
@@ -160,3 +149,5 @@ echo "       moshi-hook host setup"
 echo "     Scan the printed QR code from the Moshi app. Repeat per device."
 echo "  3. Start a session with: herdr   (or: tmux)"
 echo "=================================================================="
+SETUPEOF
+chmod +x ~/setup.sh
