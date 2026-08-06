@@ -13,6 +13,7 @@ rust   = "stable"
 lua    = "stable"
 java   = "stable"
 herdr = "latest"
+neovim = "latest"
 
 # ── Shell & Navigation ─────────────────────────────────────────────────────────
 "cargo:starship"   = "latest"
