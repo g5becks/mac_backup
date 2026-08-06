@@ -13,7 +13,6 @@ rust   = "stable"
 lua    = "stable"
 java   = "stable"
 herdr = "latest"
-neovim = "latest"
 
 # ── Shell & Navigation ─────────────────────────────────────────────────────────
 "cargo:starship"   = "latest"
@@ -31,11 +30,11 @@ neovim = "latest"
 "cargo:git-delta"                     = "latest"    # binary is delta
 "ubi:cli/cli"                         = "latest"    # binary is gh
 "go:github.com/evilmartians/lefthook" = "latest"
-
+"gh" = "latest"
 # ── Editors ───────────────────────────────────────────────────────────────────
 "cargo:helix-term"                        = "latest"    # binary is hx; dedup: also in brew as helix
 "go:github.com/zyedidia/micro/v2/cmd/micro" = "latest"
-
+"neovim" = "latest"
 # ── LSP Servers ───────────────────────────────────────────────────────────────
 "go:golang.org/x/tools/gopls"                     = "latest"
 "go:github.com/nametake/golangci-lint-langserver"  = "latest"
