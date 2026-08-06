@@ -47,8 +47,8 @@ gh                               = "latest"
 "go:golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow" = "latest"
 "go:github.com/mark3labs/mcp-filesystem-server"              = "latest"
 "go:github.com/isaacphi/mcp-language-server"                 = "latest"
-"go:github.com/yuucu/todotui/cmd/todotui"                    = "latest"
-"go:github.com/github/github-mcp-server"                     = "latest"
+"go:github.com/github/github-mcp-server/cmd/github-mcp-server" = "latest"
+
 "github:goreleaser/goreleaser"                                = "latest"
 
 # ── Python Tools ──────────────────────────────────────────────────────────────
