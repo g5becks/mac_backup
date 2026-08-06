@@ -62,7 +62,8 @@ gh                               = "latest"
 "pipx:basic-memory"      = "latest"
 "pipx:howdoi"            = "latest"
 "pipx:python-lsp-server" = "latest"
-"pipx:thefuck" = "latest"
+"pipx:thefuck" = { version = "latest", uvx_args = "--python 3.12 --with setuptools>=80 --with imp2importlib" }
+
 
 
 # ── System & TUI Tools ────────────────────────────────────────────────────────
