@@ -32,8 +32,6 @@ neovim = "latest"
 gh                               = "latest"
 "go:github.com/evilmartians/lefthook" = "latest"
 
-# ── Editors ───────────────────────────────────────────────────────────────────
-"cargo:helix-term" = "latest"    # binary is hx; kept as keyboard-session fallback
 
 # ── LSP Servers (not covered by Mason — verify before removing) ────────────────
 "github:Automattic/harper"             = "latest"    # binary is harper-ls
