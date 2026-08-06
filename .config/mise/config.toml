@@ -12,55 +12,43 @@ go     = "latest"
 rust   = "stable"
 lua    = "stable"
 java   = "stable"
-herdr = "latest"
+herdr  = "latest"
+neovim = "latest"
 
 # ── Shell & Navigation ─────────────────────────────────────────────────────────
-"cargo:starship"   = "latest"
-"cargo:zoxide"     = "latest"
-"cargo:eza"        = "latest"
-"cargo:bat"        = "latest"
-"cargo:fd-find"    = "latest"    # binary is fd
-"cargo:ripgrep"    = "latest"    # binary is rg
-"cargo:mcfly"      = "latest"
-"cargo:yazi-fm"    = "latest"    # binary is yazi
-"ubi:junegunn/fzf" = "latest"
+"cargo:starship"      = "latest"
+"cargo:zoxide"        = "latest"
+"cargo:eza"           = "latest"
+"cargo:bat"           = "latest"
+"cargo:fd-find"       = "latest"    # binary is fd
+"cargo:ripgrep"       = "latest"    # binary is rg
+"cargo:mcfly"         = "latest"
+"cargo:yazi-fm"       = "latest"    # binary is yazi
+"github:junegunn/fzf" = "latest"
 
 # ── Git ───────────────────────────────────────────────────────────────────────
-"ubi:jesseduffield/lazygit"           = "latest"
+"github:jesseduffield/lazygit"        = "latest"
 "cargo:git-delta"                     = "latest"    # binary is delta
-"ubi:cli/cli"                         = "latest"    # binary is gh
+gh                                    = "latest"
 "go:github.com/evilmartians/lefthook" = "latest"
-"gh" = "latest"
-# ── Editors ───────────────────────────────────────────────────────────────────
-"cargo:helix-term"                        = "latest"    # binary is hx; dedup: also in brew as helix
-"go:github.com/zyedidia/micro/v2/cmd/micro" = "latest"
-"neovim" = "latest"
-# ── LSP Servers ───────────────────────────────────────────────────────────────
-"go:golang.org/x/tools/gopls"                     = "latest"
-"go:github.com/nametake/golangci-lint-langserver"  = "latest"
-"go:github.com/mattn/efm-langserver"               = "latest"
-"ubi:LuaLS/lua-language-server"                    = "latest"
-"cargo:harper"                                     = "latest"
-"npm:bash-language-server"                         = "latest"
-"npm:typescript-language-server"                   = "latest"
-"npm:yaml-language-server"                         = "latest"
-"npm:vscode-langservers-extracted"                 = "latest"
-"npm:@ansible/ansible-language-server"             = "latest"
-"npm:basedpyright"                                 = "latest"    # dedup: drops brew pyright, basedpyright supersedes it
+
+# ── LSP Servers (not covered by Mason — verify before removing) ────────────────
+"cargo:harper"                         = "latest"
+"npm:@ansible/ansible-language-server" = "latest"
 
 # ── Go Dev Tools ───────────────────────────────────────────────────────────────
 "go:github.com/air-verse/air"                                 = "latest"
 "go:github.com/fatih/gomodifytags"                           = "latest"
 "go:gotest.tools/gotestsum"                                   = "latest"
 "go:github.com/josharian/impl"                               = "latest"
-"go:mvdan.cc/gofumpt"                                         = "latest"    # dedup: in both brew and go sections
-"go:github.com/golangci/golangci-lint/v2/cmd/golangci-lint"  = "latest"    # dedup: in both brew and go sections
+"go:mvdan.cc/gofumpt"                                         = "latest"
+"go:github.com/golangci/golangci-lint/v2/cmd/golangci-lint"  = "latest"
 "go:golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow" = "latest"
 "go:github.com/mark3labs/mcp-filesystem-server"              = "latest"
 "go:github.com/isaacphi/mcp-language-server"                 = "latest"
 "go:github.com/yuucu/todotui/cmd/todotui"                    = "latest"
 "go:github.com/github/github-mcp-server"                     = "latest"
-"ubi:goreleaser/goreleaser"                                   = "latest"
+"github:goreleaser/goreleaser"                                = "latest"
 
 # ── Python Tools ──────────────────────────────────────────────────────────────
 "cargo:ruff"             = "latest"
@@ -74,13 +62,13 @@ herdr = "latest"
 "pipx:python-lsp-server" = "latest"
 
 # ── System & TUI Tools ────────────────────────────────────────────────────────
-"cargo:bottom"                    = "latest"
-"cargo:procs"                     = "latest"
-"cargo:navi"                      = "latest"
-"cargo:viu"                       = "latest"
-"cargo:tlrc"                      = "latest"
-"ubi:jesseduffield/lazydocker"    = "latest"
-"go:github.com/jorgerojas26/lazysql" = "latest"
+"cargo:bottom"                        = "latest"
+"cargo:procs"                         = "latest"
+"cargo:navi"                          = "latest"
+"cargo:viu"                           = "latest"
+"cargo:tlrc"                          = "latest"
+"github:jesseduffield/lazydocker"     = "latest"
+"go:github.com/jorgerojas26/lazysql"  = "latest"
 
 # ── HTTP & API Tools ──────────────────────────────────────────────────────────
 "cargo:hurl" = "latest"
@@ -90,14 +78,14 @@ herdr = "latest"
 "go:github.com/go-task/task/v3/cmd/task" = "latest"
 
 # ── Formatters & Linters ──────────────────────────────────────────────────────
-"cargo:stylua"                                    = "latest"
-"cargo:taplo-cli"                                 = "latest"    # binary is taplo
-"cargo:ast-grep"                                  = "latest"    # binary is sg
-"cargo:argc"                                      = "latest"
-"npm:@biomejs/biome"                              = "latest"
-"go:github.com/google/yamlfmt/cmd/yamlfmt"       = "latest"
-"ubi:koalaman/shellcheck"                         = "latest"
-"go:github.com/rhysd/actionlint/cmd/actionlint"  = "latest"
+"cargo:stylua"                                   = "latest"
+"cargo:taplo-cli"                                = "latest"    # binary is taplo
+"cargo:ast-grep"                                 = "latest"    # binary is sg
+"cargo:argc"                                     = "latest"
+"npm:@biomejs/biome"                             = "latest"
+"go:github.com/google/yamlfmt/cmd/yamlfmt"      = "latest"
+"github:koalaman/shellcheck"                     = "latest"
+"go:github.com/rhysd/actionlint/cmd/actionlint" = "latest"
 
 # ── Docs & Search ─────────────────────────────────────────────────────────────
 "cargo:scooter" = "latest"
@@ -111,13 +99,13 @@ herdr = "latest"
 "go:github.com/xo/usql"                    = "latest"
 
 # ── Shell Completion ──────────────────────────────────────────────────────────
-"ubi:carapace-sh/carapace-bin"        = "latest"
+"github:carapace-sh/carapace-bin"       = "latest"
 "go:github.com/quantonganh/snippets-ls" = "latest"
 
 # ── AI Tools ──────────────────────────────────────────────────────────────────
-"cargo:aichat"                       = "latest"
-"npm:@google/gemini-cli"             = "latest"
-"npm:@smithery/cli"                  = "latest"
+"cargo:aichat"           = "latest"
+"npm:@google/gemini-cli" = "latest"
+"npm:@smithery/cli"      = "latest"
 
 # ── Misc NPM ──────────────────────────────────────────────────────────────────
 "npm:commitizen"            = "latest"
@@ -132,4 +120,3 @@ herdr = "latest"
 "cargo:orly"        = "latest"
 "cargo:todotxt-tui" = "latest"
 "cargo:wrkflw"      = "latest"
-
