@@ -6,34 +6,37 @@ experimental = true
 node   = "lts"
 bun    = "latest"
 deno   = "latest"
-python = "stable"
+python = "stable"    # build failure was missing apt dev libs, not this version string — see setup.sh
 uv     = "latest"
 go     = "latest"
 rust   = "stable"
-lua    = "stable"
-java   = "stable"
+lua    = "5.4.7"      # "stable" 404'd — not a valid version alias for this tool
+java   = "21"          # "stable" gave "no metadata found" — not a valid alias here either
 herdr  = "latest"
 neovim = "latest"
 
 # ── Shell & Navigation ─────────────────────────────────────────────────────────
-"cargo:starship"      = "latest"
-"cargo:zoxide"        = "latest"
-"cargo:eza"           = "latest"
-"cargo:bat"           = "latest"
-"cargo:fd-find"       = "latest"    # binary is fd
-"cargo:ripgrep"       = "latest"    # binary is rg
-"cargo:mcfly"         = "latest"
-"cargo:yazi-fm"       = "latest"    # binary is yazi
-"github:junegunn/fzf" = "latest"
+"github:starship/starship"  = "latest"
+"github:ajeetdsouza/zoxide" = "latest"
+"github:eza-community/eza"  = "latest"
+"github:sharkdp/bat"        = "latest"
+"github:sharkdp/fd"         = "latest"    # binary is fd
+"github:BurntSushi/ripgrep" = "latest"    # binary is rg
+"github:cantino/mcfly"      = "latest"
+"github:sxyazi/yazi"        = "latest"    # binary is yazi; crates.io release lacks required Lua plugin files
+"github:junegunn/fzf"       = "latest"
 
 # ── Git ───────────────────────────────────────────────────────────────────────
-"github:jesseduffield/lazygit"        = "latest"
-"cargo:git-delta"                     = "latest"    # binary is delta
-gh                                    = "latest"
+"github:jesseduffield/lazygit" = "latest"
+"github:dandavison/delta"      = "latest"    # binary is delta
+gh                               = "latest"
 "go:github.com/evilmartians/lefthook" = "latest"
 
+# ── Editors ───────────────────────────────────────────────────────────────────
+"cargo:helix-term" = "latest"    # binary is hx; kept as keyboard-session fallback
+
 # ── LSP Servers (not covered by Mason — verify before removing) ────────────────
-"cargo:harper"                         = "latest"
+"github:Automattic/harper"             = "latest"    # binary is harper-ls
 "npm:@ansible/ansible-language-server" = "latest"
 
 # ── Go Dev Tools ───────────────────────────────────────────────────────────────
@@ -51,7 +54,8 @@ gh                                    = "latest"
 "github:goreleaser/goreleaser"                                = "latest"
 
 # ── Python Tools ──────────────────────────────────────────────────────────────
-"cargo:ruff"             = "latest"
+# All pipx: entries already route through uv/uvx automatically since uv is installed above — no syntax change needed.
+"github:astral-sh/ruff"  = "latest"
 "pipx:djlint"            = "latest"
 "pipx:posting"           = "latest"
 "pipx:sourcery"          = "latest"
@@ -62,36 +66,36 @@ gh                                    = "latest"
 "pipx:python-lsp-server" = "latest"
 
 # ── System & TUI Tools ────────────────────────────────────────────────────────
-"cargo:bottom"                        = "latest"
-"cargo:procs"                         = "latest"
-"cargo:navi"                          = "latest"
-"cargo:viu"                           = "latest"
-"cargo:tlrc"                          = "latest"
-"github:jesseduffield/lazydocker"     = "latest"
-"go:github.com/jorgerojas26/lazysql"  = "latest"
+"github:ClementTsang/bottom"         = "latest"    # binary is btm
+"github:dalance/procs"               = "latest"
+"github:denisidoro/navi"             = "latest"
+"github:atanunq/viu"                 = "latest"    # prebuilt binary may lag current release
+"github:tldr-pages/tlrc"             = "latest"
+"github:jesseduffield/lazydocker"    = "latest"
+"go:github.com/jorgerojas26/lazysql" = "latest"
 
 # ── HTTP & API Tools ──────────────────────────────────────────────────────────
-"cargo:hurl" = "latest"
-"cargo:xh"   = "latest"
+"github:Orange-OpenSource/hurl" = "latest"
+"github:ducaale/xh"             = "latest"
 
 # ── Command Runners ───────────────────────────────────────────────────────────
 "go:github.com/go-task/task/v3/cmd/task" = "latest"
+"github:sigoden/argc"                     = "latest"
 
 # ── Formatters & Linters ──────────────────────────────────────────────────────
-"cargo:stylua"                                   = "latest"
-"cargo:taplo-cli"                                = "latest"    # binary is taplo
-"cargo:ast-grep"                                 = "latest"    # binary is sg
-"cargo:argc"                                     = "latest"
-"npm:@biomejs/biome"                             = "latest"
+"github:JohnnyMorganz/StyLua"    = "latest"
+"github:tamasfe/taplo"           = "latest"    # binary is taplo; verify asset resolves, has a history of broken links
+"github:ast-grep/ast-grep"       = "latest"    # binary is sg
+"npm:@biomejs/biome"             = "latest"
 "go:github.com/google/yamlfmt/cmd/yamlfmt"      = "latest"
 "github:koalaman/shellcheck"                     = "latest"
 "go:github.com/rhysd/actionlint/cmd/actionlint" = "latest"
 
 # ── Docs & Search ─────────────────────────────────────────────────────────────
-"cargo:scooter" = "latest"
-"cargo:serpl"   = "latest"
-"npm:repomix"   = "latest"
-"npm:fx"        = "latest"
+"github:thomasschafer/scooter" = "latest"
+"github:yassinebridi/serpl"    = "latest"    # confirmed: README points to releases page
+"npm:repomix"                   = "latest"
+"npm:fx"                        = "latest"
 "go:github.com/charmbracelet/glow" = "latest"
 
 # ── Cloud & DB Tools ──────────────────────────────────────────────────────────
@@ -100,23 +104,22 @@ gh                                    = "latest"
 
 # ── Shell Completion ──────────────────────────────────────────────────────────
 "github:carapace-sh/carapace-bin"       = "latest"
-"go:github.com/quantonganh/snippets-ls" = "latest"
 
 # ── AI Tools ──────────────────────────────────────────────────────────────────
-"cargo:aichat"           = "latest"
+"cargo:aichat"           = "latest"    # heavy compile (tokio/reqwest/tls) — no prebuilt found, budget ~5min
 "npm:@google/gemini-cli" = "latest"
 "npm:@smithery/cli"      = "latest"
 
 # ── Misc NPM ──────────────────────────────────────────────────────────────────
 "npm:commitizen"            = "latest"
-"npm:ibm-openapi-validator" = "latest"
+"npm:ibm-openapi-validator" = "latest"    # last run hit a trust-policy block on rollup@2.80.0 — investigate before excluding, see mise docs on trust_policy_excludes
 "npm:npm-check-extras"      = "latest"
 "npm:corepack"              = "latest"
 
-# ── Cargo Extras ──────────────────────────────────────────────────────────────
+# ── Cargo Extras — no confirmed prebuilt binaries, staying on cargo: ───────────
 "cargo:basalt-tui"  = "latest"
 "cargo:ck-search"   = "latest"
-"cargo:lazyactions" = "latest"
+"cargo:lazyactions" = "latest"    # confirmed: git clone + make build only, no releases
 "cargo:orly"        = "latest"
 "cargo:todotxt-tui" = "latest"
 "cargo:wrkflw"      = "latest"
