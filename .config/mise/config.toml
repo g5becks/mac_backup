@@ -62,6 +62,8 @@ gh                               = "latest"
 "pipx:basic-memory"      = "latest"
 "pipx:howdoi"            = "latest"
 "pipx:python-lsp-server" = "latest"
+"pipx:thefuck" = "latest"
+
 
 # ── System & TUI Tools ────────────────────────────────────────────────────────
 "github:ClementTsang/bottom"         = "latest"    # binary is btm
