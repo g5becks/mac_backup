@@ -25,7 +25,9 @@ herdr  = "latest"
 "npm:yaml-language-server"                         = "latest"
 "npm:vscode-langservers-extracted"                 = "latest"
 "npm:@ansible/ansible-language-server"             = "latest"
-"npm:basedpyright"                                 = "latest"
+"npm:basedpyright" = "latest"
+"npm:@tailwindcss/language-server" = "latest"
+
 
 
 # ── Shell & Navigation ─────────────────────────────────────────────────────────
