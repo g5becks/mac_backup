@@ -13,7 +13,20 @@ rust   = "stable"
 lua    = "5.4.7"      # "stable" 404'd — not a valid version alias for this tool
 java   = "21"          # "stable" gave "no metadata found" — not a valid alias here either
 herdr  = "latest"
-neovim = "latest"
+
+# ── LSP Servers ───────────────────────────────────────────────────────────────
+"go:golang.org/x/tools/gopls"                     = "latest"
+"go:github.com/nametake/golangci-lint-langserver"  = "latest"
+"go:github.com/mattn/efm-langserver"               = "latest"
+"github:LuaLS/lua-language-server"                 = "latest"
+"github:Automattic/harper"                         = "latest"    # binary is harper-ls
+"npm:bash-language-server"                         = "latest"
+"npm:typescript-language-server"                   = "latest"
+"npm:yaml-language-server"                         = "latest"
+"npm:vscode-langservers-extracted"                 = "latest"
+"npm:@ansible/ansible-language-server"             = "latest"
+"npm:basedpyright"                                 = "latest"
+
 
 # ── Shell & Navigation ─────────────────────────────────────────────────────────
 "github:starship/starship"  = "latest"
