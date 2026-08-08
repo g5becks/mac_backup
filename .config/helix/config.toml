@@ -24,7 +24,7 @@ hidden = false
 enable = true
 
 [editor.inline-diagnostics]
-cursor-line = "hint"
+cursor-line = "warning"
 other-lines = "hint"
 
 [editor.indent-guides]
