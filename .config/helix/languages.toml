@@ -106,6 +106,10 @@ args = ["server", "-v"]
 documentFormatting = true
 settings.run = "onSave"
 
+[language-server.basedpyright]
+command = "basedpyright-langserver"
+args = ["--stdio"]
+
 [language-server.py_snippets]
 command = "snippets-ls"
 args = ["-config", "~/.config/helix/snippets/python.json"]
