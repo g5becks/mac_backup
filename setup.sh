@@ -60,7 +60,8 @@ apt install -y build-essential git curl wget unzip imagemagick ffmpegthumbnailer
     libxml2-dev libfreetype6-dev pkgconf parallel p7zip-full \
     git-flow zsh zsh-autosuggestions \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
-    libffi-dev liblzma-dev libncurses-dev
+    libffi-dev liblzma-dev libncurses-dev jq poppler-utils
+
 
 # ── 8. awscli v2 ─────────────────────────────────────────────────────────
 log "awscli"
