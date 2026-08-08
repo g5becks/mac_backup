@@ -1,9 +1,26 @@
--- Yazi init.lua - Helix integration support
--- This enables starting Yazi at the git project root when YAZI_START_AT_ROOT=1 is set
-
+-- Git-root detection (existing)
 if os.getenv("YAZI_START_AT_ROOT") then
   local root = io.popen("git rev-parse --show-toplevel 2>/dev/null"):read("*a")
   if root and root ~= "" then
     ya.manager_emit("cd", { root:gsub("[\r\n]", "") })
   end
 end
+
+-- Batch 1: official plugins
+require("git"):setup()
+require("vcs-files"):setup()
+require("full-border"):setup()
+
+-- Batch 2: verify syntax against each plugin's own README before trusting this
+require("vscode-git-gutter"):setup()
+require("vscode-git-colors"):setup()
+
+-- Batch 3: verify syntax against plugin's own README
+require("mobile-auto-layout"):setup()
+
+-- Batch 4: confirmed syntax from plugin's own docs
+require("relative-motions"):setup({
+  show_numbers = "relative",
+  show_motion = true,
+  enter_mode = "first",
+})
