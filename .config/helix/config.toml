@@ -1,27 +1,35 @@
 theme = 'carbon'
 
+[editor]
+color-modes = true
+line-number = "relative"
+mouse = false
+trim-trailing-whitespace = true
+completion-replace = true
+rulers = [100]
+end-of-line-diagnostics = "hint"
+# TODO: Enable rainbow brackets when upgrading to Helix nightly or next stable release (merged July 2024)
+# rainbow-brackets = true
+
+[editor.statusline]
+left = ["mode", "spinner", "version-control", "spacer", "separator", "file-name", "read-only-indicator", "file-modification-indicator"]
+center = []
+right = ["diagnostics", "workspace-diagnostics", "position", "file-encoding", "file-line-ending", "file-type"]
+separator = "│"
+
 [editor.file-picker]
 hidden = false
 
 [editor.soft-wrap]
 enable = true
 
-
 [editor.inline-diagnostics]
-cursor-line = "hint" # show warnings and errors on the cursorline inline
+cursor-line = "hint"
 other-lines = "hint"
 
 [editor.indent-guides]
 render = true
 character = "⏽"
-
-
-[editor]
-color-modes = true
-line-number = "relative"
-mouse = false
-# TODO: Enable rainbow brackets when upgrading to Helix nightly or next stable release (merged July 2024)
-# rainbow-brackets = true
 
 [editor.cursor-shape]
 insert = "bar"
@@ -40,7 +48,7 @@ select = "underline"
 [editor.auto-save]
 focus-lost = true
 after-delay.enable = true
-
+after-delay.timeout = 300000
 
 [keys.normal]
 d = "delete_selection_noyank"
@@ -51,3 +59,6 @@ C-q = [
   ':open %sh{cat /tmp/helix-yazi-chooser}',
   ':redraw',
 ]
+
+[keys.normal.space.f]
+r = ":reload-all"
