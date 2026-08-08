@@ -3,7 +3,7 @@ theme = 'carbon'
 [editor]
 color-modes = true
 line-number = "relative"
-mouse = false
+mouse = true
 trim-trailing-whitespace = true
 completion-replace = true
 rulers = [100]
