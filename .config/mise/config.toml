@@ -38,6 +38,7 @@ herdr  = "latest"
 "github:cantino/mcfly"      = "latest"
 "github:sxyazi/yazi"        = "latest"    # binary is yazi; crates.io release lacks required Lua plugin files
 "github:junegunn/fzf"       = "latest"
+"github:helix-editor/helix" = "latest"    # binary is hx
 
 # ── Git ───────────────────────────────────────────────────────────────────────
 "github:jesseduffield/lazygit" = "latest"
