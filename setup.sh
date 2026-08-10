@@ -62,7 +62,6 @@ apt install -y build-essential git curl wget unzip imagemagick ffmpegthumbnailer
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     libffi-dev liblzma-dev libncurses-dev jq poppler-utils
 
-
 # ── 8. awscli v2 ─────────────────────────────────────────────────────────
 log "awscli"
 if ! command -v aws >/dev/null 2>&1; then
@@ -131,7 +130,36 @@ grep -qxF "$(which zsh)" /etc/shells || echo "$(which zsh)" >> /etc/shells
 log "mise install"
 mise install
 
-# ── 16. Secrets file ─────────────────────────────────────────────────────
+# ── 16. Moshi agent hooks + persistent daemon ────────────────────────────
+log "moshi-hook agent hooks + daemon"
+if ! moshi-hook status 2>/dev/null | grep -q "status:.*paired"; then
+    echo "Open Moshi -> Settings -> Agent Hooks -> copy your pairing token."
+    read -p "Paste token here: " MOSHI_TOKEN < /dev/tty
+    moshi-hook pair --token "$MOSHI_TOKEN"
+fi
+moshi-hook install --target claude
+moshi-hook install --target opencode
+
+# Persistent daemon via moshi-hook's own systemd --user integration —
+# NOT a hand-rolled system-scope unit, that was a real mistake to avoid repeating.
+moshi-hook service install
+
+# The daemon's default PATH is minimal and can't see mise-managed tools
+# (herdr specifically) without this override.
+mkdir -p ~/.config/systemd/user/moshi-hook.service.d
+cat > ~/.config/systemd/user/moshi-hook.service.d/override.conf << 'EOF'
+[Service]
+Environment="PATH=/root/.local/share/mise/shims:/usr/local/bin:/usr/bin:/bin"
+EOF
+
+systemctl --user daemon-reload
+systemctl --user restart moshi-hook
+
+# Without lingering, the --user service can stop when the SSH/Mosh session
+# that started it fully disconnects — which happens constantly on mobile.
+loginctl enable-linger root
+
+# ── 17. Secrets file ─────────────────────────────────────────────────────
 log "secrets"
 if [ ! -f ~/.zshrc_secrets ]; then
     touch ~/.zshrc_secrets
@@ -144,10 +172,11 @@ echo " Setup complete."
 echo "=================================================================="
 echo "Next steps (manual, on purpose):"
 echo "  1. Run 'exec zsh' (or reconnect) to load the full shell environment."
-echo "  2. Pair this server with Moshi on each device you want to use:"
+echo "  2. Pair this server with Moshi on each device you want SSH access from:"
 echo "       moshi-hook host setup"
 echo "     Scan the printed QR code from the Moshi app. Repeat per device."
-echo "  3. Start a session with: herdr   (or: tmux)"
+echo "  3. Verify everything: moshi-hook status"
+echo "     Confirm: status=paired, Moshi Pro attached, daemon running,"
+echo "     herdr shows a real path (not 'not found')."
+echo "  4. Start a session with: herdr   (or: tmux)"
 echo "=================================================================="
-SETUPEOF
-chmod +x ~/setup.sh
