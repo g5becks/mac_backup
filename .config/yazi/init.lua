@@ -10,17 +10,3 @@ end
 require("git"):setup()
 require("vcs-files"):setup()
 require("full-border"):setup()
-
--- Batch 2: verify syntax against each plugin's own README before trusting this
-require("vscode-git-gutter"):setup()
-require("vscode-git-colors"):setup()
-
--- Batch 3: verify syntax against plugin's own README
-require("mobile-auto-layout"):setup()
-
--- Batch 4: confirmed syntax from plugin's own docs
-require("relative-motions"):setup({
-  show_numbers = "relative",
-  show_motion = true,
-  enter_mode = "first",
-})
