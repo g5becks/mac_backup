@@ -19,3 +19,13 @@ rules = [
   { mime = "inode/x-empty", use = "edit" },
   { mime = "*", use = "edit" },
 ]
+
+[[plugin.prepend_fetchers]]
+id = "git"
+url = "*"
+run = "git"
+
+[[plugin.prepend_fetchers]]
+id = "git"
+url = "*/"
+run = "git"
