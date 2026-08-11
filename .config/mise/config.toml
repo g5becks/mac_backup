@@ -49,8 +49,7 @@ gh                               = "latest"
 
 
 # ── LSP Servers (not covered by Mason — verify before removing) ────────────────
-"github:Automattic/harper"             = "latest"    # binary is harper-ls
-"npm:@ansible/ansible-language-server" = "latest"
+"github:Automattic/harper"             = "latest"   
 
 # ── Go Dev Tools ───────────────────────────────────────────────────────────────
 "go:github.com/air-verse/air"                                 = "latest"
