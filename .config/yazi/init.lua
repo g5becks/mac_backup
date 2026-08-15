@@ -10,3 +10,4 @@ end
 require("git"):setup()
 require("full-border"):setup()
 require("vscode-git-colors"):setup()
+require("mobile-auto-layout"):setup()
