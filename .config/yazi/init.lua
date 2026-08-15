@@ -9,3 +9,4 @@ end
 -- Batch 1: official plugins
 require("git"):setup()
 require("full-border"):setup()
+require("vscode-git-colors"):setup()
