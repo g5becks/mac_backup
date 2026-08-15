@@ -2,7 +2,6 @@
 show_hidden = true
 sort_by = "alphabetical"
 sort_dir_first = true
-linemode = "size_and_mtime"
 ratio = [0, 3, 4]
 mouse_events = ["click", "scroll"]
 
