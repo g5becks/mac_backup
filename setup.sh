@@ -195,7 +195,8 @@ fi
 
 # ── 18. Moshi agent hooks + persistent daemon ────────────────────────────
 log "moshi-hook agent hooks + daemon"
-if ! moshi-hook status 2>/dev/null | grep -q "status:.*paired"; then
+HOOK_STATUS="$(moshi-hook status 2>/dev/null || true)"
+if ! printf '%s' "$HOOK_STATUS" | grep -q "paired"; then
     echo "Open Moshi -> Settings -> Agent Hooks -> copy your pairing token."
     read -r -p "Paste token here: " MOSHI_TOKEN < /dev/tty
     moshi-hook pair --token "$MOSHI_TOKEN"
