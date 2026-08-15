@@ -153,16 +153,23 @@ if ! command -v docker >/dev/null 2>&1; then
     curl -fsSL https://get.docker.com | sh
 fi
 
-# ── 14. Default shell ────────────────────────────────────────────────────
+# ── 14. Claude Code (native installer, not mise-managed — npm distribution
+#        is deprecated by Anthropic as of v2.1.15) ─────────────────────────
+log "claude code"
+if ! command -v claude >/dev/null 2>&1; then
+    curl -fsSL https://claude.ai/install.sh | bash
+fi
+
+# ── 15. Default shell ────────────────────────────────────────────────────
 log "default shell"
 grep -qxF "$(which zsh)" /etc/shells || echo "$(which zsh)" >> /etc/shells
 [ "$SHELL" = "$(which zsh)" ] || chsh -s "$(which zsh)"
 
-# ── 15. mise-managed tools (neovim, herdr, gh, bun, everything in config.toml) ─
+# ── 16. mise-managed tools (neovim, herdr, gh, bun, everything in config.toml) ─
 log "mise install"
 mise install
 
-# ── 16. Moshi agent hooks + persistent daemon ────────────────────────────
+# ── 17. Moshi agent hooks + persistent daemon ────────────────────────────
 log "moshi-hook agent hooks + daemon"
 if ! moshi-hook status 2>/dev/null | grep -q "status:.*paired"; then
     echo "Open Moshi -> Settings -> Agent Hooks -> copy your pairing token."
@@ -191,7 +198,7 @@ systemctl --user restart moshi-hook
 # that started it fully disconnects — which happens constantly on mobile.
 loginctl enable-linger root
 
-# ── 17. Secrets file ─────────────────────────────────────────────────────
+# ── 18. Secrets file ─────────────────────────────────────────────────────
 log "secrets"
 if [ ! -f ~/.zshrc_secrets ]; then
     touch ~/.zshrc_secrets
