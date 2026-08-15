@@ -32,9 +32,13 @@ if ! command -v mise >/dev/null 2>&1; then
 fi
 grep -qxF 'eval "$(~/.local/bin/mise activate bash)"' ~/.bashrc || \
     echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
-source ~/.bashrc
+# NOT 'source ~/.bashrc' — under set -u, .bashrc's reference to $PS1
+# (never set in a non-interactive script) kills the entire script here.
+# This gets mise active for the rest of THIS script without dragging in
+# interactive-only assumptions from .bashrc.
+eval "$(~/.local/bin/mise activate bash)"
 
-# ── Yazi plugins ──────────────────────────────────────────────────────────
+# ── 5. Yazi plugins ──────────────────────────────────────────────────────
 log "yazi plugins"
 mkdir -p ~/.config/yazi/plugins
 for pkg in \
@@ -66,7 +70,7 @@ if [ ! -f ~/.config/yazi/plugins/vscode-git-gutter.yazi/main.lua ] || \
     rm -rf /tmp/yazi-plugins-src
 fi
 
-# ── 5. GitHub SSH key ────────────────────────────────────────────────────
+# ── 6. GitHub SSH key ────────────────────────────────────────────────────
 log "GitHub SSH key"
 if [ ! -f ~/.ssh/github ]; then
     ssh-keygen -t ed25519 -C 'techstar.dev@hotmail.com' -f ~/.ssh/github -N ""
@@ -78,7 +82,7 @@ if ! ssh -T -i ~/.ssh/github -o StrictHostKeyChecking=accept-new git@github.com 
     read -p "Press Enter once you've added it to GitHub... " _ < /dev/tty
 fi
 
-# ── 6. Clone dotfiles ────────────────────────────────────────────────────
+# ── 7. Clone dotfiles ────────────────────────────────────────────────────
 log "dotfiles"
 if [ ! -f ~/.zshrc##os.Linux ]; then
     GIT_SSH_COMMAND="ssh -i ~/.ssh/github" yadm clone git@github.com:g5becks/mac_backup.git
@@ -86,7 +90,7 @@ fi
 cd ~
 yadm alt
 
-# ── 7. System packages ───────────────────────────────────────────────────
+# ── 8. System packages ───────────────────────────────────────────────────
 log "apt packages"
 apt install -y build-essential git curl wget unzip imagemagick ffmpegthumbnailer libwebp-dev \
     libxml2-dev libfreetype6-dev pkgconf parallel p7zip-full \
@@ -94,7 +98,7 @@ apt install -y build-essential git curl wget unzip imagemagick ffmpegthumbnailer
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     libffi-dev liblzma-dev libncurses-dev jq poppler-utils
 
-# ── 8. awscli v2 ─────────────────────────────────────────────────────────
+# ── 9. awscli v2 ─────────────────────────────────────────────────────────
 log "awscli"
 if ! command -v aws >/dev/null 2>&1; then
     ARCH=$(uname -m)
@@ -114,13 +118,13 @@ if ! command -v aws >/dev/null 2>&1; then
     fi
 fi
 
-# ── 9. zimfw (needs zsh, installed above) ───────────────────────────────
+# ── 10. zimfw (needs zsh, installed above) ───────────────────────────────
 log "zimfw"
 if [ ! -d ~/.zim ]; then
     curl -fsSL https://raw.githubusercontent.com/zimfw/install/master/install.zsh | zsh
 fi
 
-# ── 10. bat-extras ───────────────────────────────────────────────────────
+# ── 11. bat-extras ───────────────────────────────────────────────────────
 log "bat-extras"
 if [ ! -f ~/.local/bin/batdiff ]; then
     git clone --depth 1 https://github.com/eth-p/bat-extras.git /tmp/bat-extras
@@ -128,7 +132,7 @@ if [ ! -f ~/.local/bin/batdiff ]; then
     rm -rf /tmp/bat-extras
 fi
 
-# ── 11. bats-core + helper libraries ────────────────────────────────────
+# ── 12. bats-core + helper libraries ────────────────────────────────────
 log "bats-core"
 if ! command -v bats >/dev/null 2>&1; then
     git clone --depth 1 https://github.com/bats-core/bats-core.git /tmp/bats-core
@@ -140,36 +144,36 @@ mkdir -p ~/.local/share/bats-libs
 [ -d ~/.local/share/bats-libs/bats-support ] || git clone --depth 1 https://github.com/bats-core/bats-support.git ~/.local/share/bats-libs/bats-support
 [ -d ~/.local/share/bats-libs/bats-file ]    || git clone --depth 1 https://github.com/bats-core/bats-file.git    ~/.local/share/bats-libs/bats-file
 
-# ── 12. bash-preexec ─────────────────────────────────────────────────────
+# ── 13. bash-preexec ─────────────────────────────────────────────────────
 log "bash-preexec"
 [ -f ~/.bash-preexec.sh ] || curl -fsSL -o ~/.bash-preexec.sh \
     https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh
 grep -qxF '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' ~/.bashrc || \
     echo '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' >> ~/.bashrc
 
-# ── 13. Docker ────────────────────────────────────────────────────────────
+# ── 14. Docker ────────────────────────────────────────────────────────────
 log "docker"
 if ! command -v docker >/dev/null 2>&1; then
     curl -fsSL https://get.docker.com | sh
 fi
 
-# ── 14. Claude Code (native installer, not mise-managed — npm distribution
-#        is deprecated by Anthropic as of v2.1.15) ─────────────────────────
+# ── 15. Claude Code (native installer, not mise-managed — npm distribution
+#         is deprecated by Anthropic as of v2.1.15) ─────────────────────────
 log "claude code"
 if ! command -v claude >/dev/null 2>&1; then
     curl -fsSL https://claude.ai/install.sh | bash
 fi
 
-# ── 15. Default shell ────────────────────────────────────────────────────
+# ── 16. Default shell ────────────────────────────────────────────────────
 log "default shell"
 grep -qxF "$(which zsh)" /etc/shells || echo "$(which zsh)" >> /etc/shells
 [ "$SHELL" = "$(which zsh)" ] || chsh -s "$(which zsh)"
 
-# ── 16. mise-managed tools (neovim, herdr, gh, bun, everything in config.toml) ─
+# ── 17. mise-managed tools (neovim, herdr, gh, opencode, bun, everything in config.toml) ─
 log "mise install"
 mise install
 
-# ── 17. Moshi agent hooks + persistent daemon ────────────────────────────
+# ── 18. Moshi agent hooks + persistent daemon ────────────────────────────
 log "moshi-hook agent hooks + daemon"
 if ! moshi-hook status 2>/dev/null | grep -q "status:.*paired"; then
     echo "Open Moshi -> Settings -> Agent Hooks -> copy your pairing token."
@@ -198,7 +202,7 @@ systemctl --user restart moshi-hook
 # that started it fully disconnects — which happens constantly on mobile.
 loginctl enable-linger root
 
-# ── 18. Secrets file ─────────────────────────────────────────────────────
+# ── 19. Secrets file ─────────────────────────────────────────────────────
 log "secrets"
 if [ ! -f ~/.zshrc_secrets ]; then
     touch ~/.zshrc_secrets
