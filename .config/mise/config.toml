@@ -13,6 +13,8 @@ rust   = "stable"
 lua    = "5.4.7"      # "stable" 404'd — not a valid version alias for this tool
 java   = "21"          # "stable" gave "no metadata found" — not a valid alias here either
 herdr  = "latest"
+opencode = "latest"
+"npm:@anthropic-ai/claude-code" = "latest"
 
 # ── LSP Servers ───────────────────────────────────────────────────────────────
 "go:golang.org/x/tools/gopls"                     = "latest"
