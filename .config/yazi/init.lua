@@ -10,3 +10,11 @@ end
 require("git"):setup()
 require("full-border"):setup()
 require("vscode-git-colors"):setup()
+require("linemode-plus"):setup {
+  date_mode = "custom",
+  custom = {
+    order = { "year", "month", "day" },
+    separator = "-",
+    year_digits = 4,
+  }
+}
