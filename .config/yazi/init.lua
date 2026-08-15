@@ -8,5 +8,4 @@ end
 
 -- Batch 1: official plugins
 require("git"):setup()
-require("vcs-files"):setup()
 require("full-border"):setup()
