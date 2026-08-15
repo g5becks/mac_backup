@@ -39,3 +39,7 @@ run = "vscode-git-colors"
 group = "vscode-git-colors"
 url = "*/"
 run = "vscode-git-colors"
+
+[[plugin.prepend_previewers]]
+mime = "text/*"
+run = "vscode-git-gutter"
