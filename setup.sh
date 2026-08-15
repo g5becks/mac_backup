@@ -34,6 +34,38 @@ grep -qxF 'eval "$(~/.local/bin/mise activate bash)"' ~/.bashrc || \
     echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
 source ~/.bashrc
 
+# ── Yazi plugins ──────────────────────────────────────────────────────────
+log "yazi plugins"
+mkdir -p ~/.config/yazi/plugins
+for pkg in \
+    yazi-rs/plugins:git \
+    yazi-rs/plugins:vcs-files \
+    yazi-rs/plugins:full-border \
+    yazi-rs/plugins:toggle-pane \
+    yazi-rs/plugins:smart-enter \
+    yazi-rs/plugins:jump-to-char \
+    yazi-rs/plugins:smart-filter \
+    yazi-rs/plugins:piper \
+    yazi-rs/plugins:chmod \
+    yazi-rs/plugins:smart-paste \
+    ciarandg/cd-git-root \
+    qwjyh/relative-path \
+    barbanevosa/linemode-plus
+do
+    ya pkg add "$pkg"
+done
+
+# vscode-git-gutter and vscode-git-colors: ya pkg add fails on these two
+# specifically (LICENSE copy error — a layout quirk in the source repo).
+# Installed via direct clone instead, bypassing package.toml.
+if [ ! -f ~/.config/yazi/plugins/vscode-git-gutter.yazi/main.lua ] || \
+   [ ! -f ~/.config/yazi/plugins/vscode-git-colors.yazi/main.lua ]; then
+    git clone --depth 1 https://github.com/ShikherVerma/yazi-plugins.git /tmp/yazi-plugins-src
+    cp -r /tmp/yazi-plugins-src/vscode-git-gutter.yazi ~/.config/yazi/plugins/
+    cp -r /tmp/yazi-plugins-src/vscode-git-colors.yazi ~/.config/yazi/plugins/
+    rm -rf /tmp/yazi-plugins-src
+fi
+
 # ── 5. GitHub SSH key ────────────────────────────────────────────────────
 log "GitHub SSH key"
 if [ ! -f ~/.ssh/github ]; then
