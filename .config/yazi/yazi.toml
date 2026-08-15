@@ -29,3 +29,13 @@ group = "git"
 url = "*/"
 run = "git"
 group = "git"
+
+[[plugin.prepend_fetchers]]
+group = "vscode-git-colors"
+url = "*"
+run = "vscode-git-colors"
+
+[[plugin.prepend_fetchers]]
+group = "vscode-git-colors"
+url = "*/"
+run = "vscode-git-colors"
