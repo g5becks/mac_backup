@@ -15,6 +15,11 @@ export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
+# Secrets (GITHUB_TOKEN especially) must load BEFORE `mise install` — without
+# it, unauthenticated GitHub API calls hit a 60/hour rate limit and every
+# `github:` backend tool fails at once.
+[ -f "$HOME/.zshrc_secrets" ] && . "$HOME/.zshrc_secrets"
+
 # ── 1. yadm ──────────────────────────────────────────────────────────────
 log "yadm"
 apt-get update -qq
@@ -40,6 +45,9 @@ if ! command -v mise >/dev/null 2>&1; then
 fi
 grep -qxF 'eval "$(~/.local/bin/mise activate bash)"' ~/.bashrc || \
     echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
+# Do NOT source ~/.bashrc or eval `mise activate bash`: both reference
+# interactive-only vars ($PS1, $PROMPT_COMMAND) that are unset in a script,
+# which under `set -u` kills the run silently. Shims give the same PATH access.
 export PATH="$HOME/.local/share/mise/shims:$PATH"
 
 # ── 5. GitHub SSH key ────────────────────────────────────────────────────
@@ -47,6 +55,8 @@ log "GitHub SSH key"
 if [ ! -f ~/.ssh/github ]; then
     ssh-keygen -t ed25519 -C 'techstar.dev@hotmail.com' -f ~/.ssh/github -N ""
 fi
+# `ssh -T git@github.com` exits 1 even on SUCCESS (no shell access granted),
+# so capture and inspect the output rather than testing the exit status.
 SSH_TEST="$(ssh -T -i ~/.ssh/github -o StrictHostKeyChecking=accept-new \
             git@github.com 2>&1 || true)"
 if ! printf '%s' "$SSH_TEST" | grep -q "successfully authenticated"; then
@@ -64,7 +74,10 @@ fi
 cd ~
 yadm alt
 
-# ── 7. System packages — MUST run before step 8, which uses `git clone` ──
+# Dotfiles may have brought in a secrets file that did not exist at step 0.
+[ -f "$HOME/.zshrc_secrets" ] && . "$HOME/.zshrc_secrets"
+
+# ── 7. System packages — MUST precede step 8, which uses `git clone` ─────
 log "apt packages"
 apt-get install -y -qq build-essential git curl wget unzip imagemagick \
     ffmpegthumbnailer libwebp-dev libxml2-dev libfreetype6-dev pkgconf \
@@ -85,9 +98,11 @@ do
     name="${repo##*/}"
     if [ ! -d ~/Dev/"$name" ]; then
         GIT_SSH_COMMAND="ssh -i $HOME/.ssh/github" \
-            git clone "git@github.com:${repo}.git" ~/Dev/"$name"
+            git clone "git@github.com:${repo}.git" ~/Dev/"$name" || \
+            warn "failed to clone ${repo}"
     fi
 done
+cd ~
 
 # ── 9. awscli v2 ─────────────────────────────────────────────────────────
 log "awscli"
@@ -115,6 +130,7 @@ fi
 # ── 11. bat-extras ───────────────────────────────────────────────────────
 log "bat-extras"
 if [ ! -f ~/.local/bin/batdiff ]; then
+    rm -rf /tmp/bat-extras
     git clone --depth 1 https://github.com/eth-p/bat-extras.git /tmp/bat-extras
     /tmp/bat-extras/build.sh --install --prefix="$HOME/.local" --no-manuals
     rm -rf /tmp/bat-extras
@@ -123,6 +139,7 @@ fi
 # ── 12. bats-core + helper libraries ─────────────────────────────────────
 log "bats-core"
 if ! command -v bats >/dev/null 2>&1; then
+    rm -rf /tmp/bats-core
     git clone --depth 1 https://github.com/bats-core/bats-core.git /tmp/bats-core
     /tmp/bats-core/install.sh /usr/local
     rm -rf /tmp/bats-core
@@ -141,29 +158,39 @@ grep -qxF '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' ~/.bashrc |
 
 # ── 14. Docker ───────────────────────────────────────────────────────────
 log "docker"
+# get.docker.com runs its own `set -e` and exits non-zero when it detects an
+# existing install — which under our `set -e` would kill the whole script.
 if ! command -v docker >/dev/null 2>&1; then
-    curl -fsSL https://get.docker.com | sh
+    curl -fsSL https://get.docker.com | sh || warn "docker install returned non-zero"
 fi
 
-# ── 15. Claude Code (native installer) ───────────────────────────────────
+# ── 15. Claude Code (native installer — the npm distribution is deprecated
+#        by Anthropic as of v2.1.15) ──────────────────────────────────────
 log "claude code"
 if ! command -v claude >/dev/null 2>&1; then
-    curl -fsSL https://claude.ai/install.sh | bash
+    curl -fsSL https://claude.ai/install.sh | bash || warn "claude install returned non-zero"
 fi
 
 # ── 16. Default shell ────────────────────────────────────────────────────
 log "default shell"
 ZSH_PATH="$(command -v zsh)"
 grep -qxF "$ZSH_PATH" /etc/shells || echo "$ZSH_PATH" >> /etc/shells
+# Compare against /etc/passwd — $SHELL is inherited from session start and
+# goes stale immediately after chsh.
 CURRENT_SHELL="$(getent passwd "$(id -un)" | cut -d: -f7)"
 [ "$CURRENT_SHELL" = "$ZSH_PATH" ] || chsh -s "$ZSH_PATH"
 
 # ── 17. mise-managed tools ───────────────────────────────────────────────
 log "mise install"
+if [ -z "${GITHUB_TOKEN:-}" ]; then
+    warn "GITHUB_TOKEN unset — github: backend tools may hit the 60/hour"
+    warn "unauthenticated rate limit. Add it to ~/.zshrc_secrets and re-run."
+fi
 mise install
 
-# ── 18. Yazi plugins ──────────────────────────────────────────────────────
+# ── 18. Yazi plugins — MUST follow `mise install`; `ya` ships with yazi ──
 log "yazi plugins"
+cd ~
 mkdir -p ~/.config/yazi/plugins
 for pkg in \
     yazi-rs/plugins:git \
@@ -180,9 +207,15 @@ for pkg in \
     qwjyh/relative-path \
     barbanevosa/linemode-plus
 do
+    # "already exists in package.toml" exits non-zero on a re-run, which
+    # under `set -e` silently terminated the entire script.
     ya pkg add "$pkg" || true
 done
 
+# vscode-git-gutter / vscode-git-colors: `ya pkg add` fails on these two
+# (LICENSE copy error — a layout quirk in the source repo), so they are
+# cloned directly and live outside package.toml. `ya pkg upgrade` will never
+# update them; re-run this block manually to refresh.
 if [ ! -f ~/.config/yazi/plugins/vscode-git-gutter.yazi/main.lua ] || \
    [ ! -f ~/.config/yazi/plugins/vscode-git-colors.yazi/main.lua ]; then
     rm -rf /tmp/yazi-plugins-src
@@ -200,10 +233,16 @@ if ! printf '%s' "$HOOK_STATUS" | grep -q "paired"; then
     read -r -p "Paste token here: " MOSHI_TOKEN < /dev/tty
     moshi-hook pair --token "$MOSHI_TOKEN"
 fi
+# These exit non-zero when already configured — same silent-death pattern.
 moshi-hook install --target claude   || true
 moshi-hook install --target opencode || true
+
+# Persistent daemon via moshi-hook's own systemd --user integration — NOT a
+# hand-rolled system-scope unit, which was a real mistake worth not repeating.
 moshi-hook service install || true
 
+# The daemon starts with a minimal PATH and cannot see mise-managed tools
+# (herdr specifically) without this override.
 mkdir -p "$HOME/.config/systemd/user/moshi-hook.service.d"
 cat > "$HOME/.config/systemd/user/moshi-hook.service.d/override.conf" <<EOF
 [Service]
@@ -212,19 +251,26 @@ EOF
 
 systemctl --user daemon-reload      || warn "systemctl --user unavailable; run daemon-reload manually"
 systemctl --user restart moshi-hook || warn "could not restart moshi-hook; check 'systemctl --user status moshi-hook'"
+
+# Without lingering, the --user service stops when the SSH/Mosh session that
+# started it fully disconnects — which happens constantly on mobile.
 loginctl enable-linger "$(id -un)" || true
 
 # ── 20. herdr-plus plugin + project workspaces ───────────────────────────
 log "herdr-plus"
 herdr plugin install cloudmanic/herdr-plus --yes || true
+
+# Herdr integrations write into each agent's own config directory and fail
+# when it does not exist yet — likely on a fresh box where neither agent has
+# been run even once.
+mkdir -p ~/.claude ~/.config/opencode
 herdr integration install claude   || true
 herdr integration install opencode || true
 
-# Hardcoded, not resolved via `herdr plugin config-dir`: that command
-# resolves differently depending on whether a herdr server is already
-# running, and falls back to a DIFFERENT path (~/.config/herdr-plus/) when
-# run standalone — exactly the state this script runs in. This exact path
-# is confirmed identical across the plugin's own README and docs site.
+# Hardcoded rather than resolved via `herdr plugin config-dir`: that command
+# falls back to a DIFFERENT path (~/.config/herdr-plus/) when no herdr server
+# is running — exactly this script's state. Path confirmed identical across
+# the plugin's README and its docs site.
 HERDR_PLUS_DIR="$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus"
 mkdir -p "$HERDR_PLUS_DIR/projects"
 
@@ -276,10 +322,15 @@ log "secrets"
 if [ ! -f ~/.zshrc_secrets ]; then
     touch ~/.zshrc_secrets
     echo "Created empty ~/.zshrc_secrets — add your API keys/tokens here."
+    echo "GITHUB_TOKEN belongs here; mise needs it to avoid GitHub rate limits."
 fi
 
 # ── 22. Verify ───────────────────────────────────────────────────────────
 log "verification"
+# Ensure both install locations are visible regardless of what each
+# installer did to PATH in this session.
+export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
+
 MISSING=0
 for cmd in yadm mosh mise git zsh docker claude aws bats yazi ya hx herdr gh opencode bun; do
     if command -v "$cmd" >/dev/null 2>&1; then
@@ -299,7 +350,7 @@ for name in oxlint-plugins dox errorset StrataDb agentx; do
     fi
 done
 
-if [ -f "$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus/projects/oxlint-plugins.toml" ]; then
+if [ -f "$HERDR_PLUS_DIR/projects/oxlint-plugins.toml" ]; then
     printf '  ok      herdr-plus project templates\n'
 else
     printf '  MISSING herdr-plus project templates\n'
