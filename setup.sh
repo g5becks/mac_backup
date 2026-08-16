@@ -171,7 +171,7 @@ if ! command -v claude >/dev/null 2>&1; then
     curl -fsSL https://claude.ai/install.sh | bash || warn "claude install returned non-zero"
 fi
 
-# ── 16. Default shell ────────────────────────────────────────────────────
+# ── 16. Default shell + login-shell EDITOR ───────────────────────────────
 log "default shell"
 ZSH_PATH="$(command -v zsh)"
 grep -qxF "$ZSH_PATH" /etc/shells || echo "$ZSH_PATH" >> /etc/shells
@@ -179,6 +179,13 @@ grep -qxF "$ZSH_PATH" /etc/shells || echo "$ZSH_PATH" >> /etc/shells
 # goes stale immediately after chsh.
 CURRENT_SHELL="$(getent passwd "$(id -un)" | cut -d: -f7)"
 [ "$CURRENT_SHELL" = "$ZSH_PATH" ] || chsh -s "$ZSH_PATH"
+
+# herdr-file-viewer's `e` key reads $EDITOR from the HERDR SERVER's
+# environment, not your interactive shell. Under mosh the server never
+# sources .zshrc, so `e` silently does nothing. ~/.profile is the
+# login-shell path mosh actually reads.
+grep -qxF 'export EDITOR=hx' ~/.profile 2>/dev/null || \
+    echo 'export EDITOR=hx' >> ~/.profile
 
 # ── 17. mise-managed tools ───────────────────────────────────────────────
 log "mise install"
@@ -256,9 +263,13 @@ systemctl --user restart moshi-hook || warn "could not restart moshi-hook; check
 # started it fully disconnects — which happens constantly on mobile.
 loginctl enable-linger "$(id -un)" || true
 
-# ── 20. herdr-plus plugin + project workspaces ───────────────────────────
-log "herdr-plus"
-herdr plugin install cloudmanic/herdr-plus --yes || true
+# ── 20. Herdr plugins + project workspaces ───────────────────────────────
+log "herdr plugins"
+# --yes is required: plugin install shows an interactive trust preview by
+# default, which would hang a non-interactive script indefinitely.
+herdr plugin install cloudmanic/herdr-plus --yes      || true
+herdr plugin install smarzban/herdr-file-viewer --yes || true
+herdr plugin install persiyanov/herdr-reviewr --yes   || true
 
 # Herdr integrations write into each agent's own config directory and fail
 # when it does not exist yet — likely on a fresh box where neither agent has
@@ -314,6 +325,22 @@ key = "prefix+up"
 type = "plugin_action"
 command = "cloudmanic.herdr-plus.projects"
 description = "herdr-plus: projects"
+
+[[keys.command]]
+key = "prefix+f"
+type = "shell"
+command = "herdr plugin action invoke open-file-viewer --plugin herdr-file-viewer"
+description = "file viewer (split)"
+
+# NOTE: verify this action id after install with
+#   herdr plugin action list --plugin persiyanov.reviewr
+# The plugin's README names the action only in prose ("reviewr: toggle
+# sidebar"), so this id is inferred from its documented plugin id.
+[[keys.command]]
+key = "prefix+r"
+type = "plugin_action"
+command = "persiyanov.reviewr.toggle-sidebar"
+description = "reviewr: toggle sidebar"
 EOF
 fi
 
@@ -357,10 +384,20 @@ else
     MISSING=$((MISSING + 1))
 fi
 
+HERDR_PLUGINS="$(herdr plugin list 2>/dev/null || true)"
+for plug in herdr-plus file-viewer reviewr; do
+    if printf '%s' "$HERDR_PLUGINS" | grep -q "$plug"; then
+        printf '  ok      herdr plugin: %s\n' "$plug"
+    else
+        printf '  MISSING herdr plugin: %s\n' "$plug"
+        MISSING=$((MISSING + 1))
+    fi
+done
+
 echo ""
 echo "=================================================================="
 if [ "$MISSING" -eq 0 ]; then
-    echo " Setup complete — all tools, repos, and templates present."
+    echo " Setup complete — all tools, repos, templates, and plugins present."
 else
     echo " Setup finished with $MISSING missing item(s) — see list above."
 fi
@@ -374,5 +411,11 @@ echo "  3. Verify: moshi-hook status"
 echo "     Confirm status=paired, Moshi Pro attached, daemon running,"
 echo "     and herdr shows a real path (not 'not found')."
 echo "  4. Start a session with: herdr"
-echo "  5. Press prefix+up in Herdr to open the project picker (herdr-plus)."
+echo "  5. Keybindings inside herdr (prefix = ctrl+b):"
+echo "       prefix+up  project picker (herdr-plus)"
+echo "       prefix+f   file viewer split"
+echo "       prefix+r   reviewr sidebar"
+echo "  6. Confirm the reviewr action id — the keybinding in config.toml is"
+echo "     inferred, not documented:"
+echo "       herdr plugin action list --plugin persiyanov.reviewr"
 echo "=================================================================="
