@@ -66,6 +66,8 @@ if ! printf '%s' "$SSH_TEST" | grep -q "successfully authenticated"; then
 fi
 
 # ── 6. Clone dotfiles ────────────────────────────────────────────────────
+# This also delivers ~/.config/herdr/config.toml, which is yadm-tracked.
+# Nothing later in this script writes to that file — see step 20.
 log "dotfiles"
 if [ ! -f "$HOME/.zshrc##os.Linux" ]; then
     GIT_SSH_COMMAND="ssh -i $HOME/.ssh/github" \
@@ -265,23 +267,31 @@ loginctl enable-linger "$(id -un)" || true
 
 # ── 20. Herdr plugins + project workspaces ───────────────────────────────
 log "herdr plugins"
-# --yes is required: plugin install shows an interactive trust preview by
-# default, which would hang a non-interactive script indefinitely.
-herdr plugin install cloudmanic/herdr-plus --yes      || true
-herdr plugin install smarzban/herdr-file-viewer --yes || true
-herdr plugin install persiyanov/herdr-reviewr --yes   || true
+# --yes suppresses the interactive trust preview; </dev/null guarantees the
+# command can never block on input even if something else tries to read stdin.
+herdr plugin install cloudmanic/herdr-plus --yes      </dev/null || true
+herdr plugin install smarzban/herdr-file-viewer --yes </dev/null || true
+herdr plugin install persiyanov/herdr-reviewr --yes   </dev/null || true
 
 # Herdr integrations write into each agent's own config directory and fail
 # when it does not exist yet — likely on a fresh box where neither agent has
 # been run even once.
 mkdir -p ~/.claude ~/.config/opencode
-herdr integration install claude   || true
-herdr integration install opencode || true
+herdr integration install claude   </dev/null || true
+herdr integration install opencode </dev/null || true
 
-# Hardcoded rather than resolved via `herdr plugin config-dir`: that command
-# falls back to a DIFFERENT path (~/.config/herdr-plus/) when no herdr server
-# is running — exactly this script's state. Path confirmed identical across
-# the plugin's README and its docs site.
+# NOTE: ~/.config/herdr/config.toml is yadm-tracked and arrives via step 6.
+# This script deliberately does NOT write to it — appending here would be
+# wiped by the next `yadm reset --hard` and duplicated on every re-run.
+# Keybindings (verified against the installed plugins' actual action ids):
+#   prefix+up  cloudmanic.herdr-plus.projects
+#   prefix+f   herdr-file-viewer.open-file-viewer
+#   prefix+r   persiyanov.reviewr.toggle
+
+# Path confirmed from real install output:
+#   "Config: /root/.config/herdr/plugins/config/cloudmanic.herdr-plus"
+# Not resolved via `herdr plugin config-dir`, which falls back to a different
+# path when no herdr server is running — exactly this script's state.
 HERDR_PLUS_DIR="$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus"
 mkdir -p "$HERDR_PLUS_DIR/projects"
 
@@ -314,35 +324,6 @@ name = "lazygit"
 command = "lazygit"
 EOF
 done
-
-mkdir -p ~/.config/herdr
-if [ ! -f ~/.config/herdr/config.toml ] || \
-   ! grep -q "cloudmanic.herdr-plus.projects" ~/.config/herdr/config.toml; then
-    cat >> ~/.config/herdr/config.toml <<'EOF'
-
-[[keys.command]]
-key = "prefix+up"
-type = "plugin_action"
-command = "cloudmanic.herdr-plus.projects"
-description = "herdr-plus: projects"
-
-[[keys.command]]
-key = "prefix+f"
-type = "shell"
-command = "herdr plugin action invoke open-file-viewer --plugin herdr-file-viewer"
-description = "file viewer (split)"
-
-# NOTE: verify this action id after install with
-#   herdr plugin action list --plugin persiyanov.reviewr
-# The plugin's README names the action only in prose ("reviewr: toggle
-# sidebar"), so this id is inferred from its documented plugin id.
-[[keys.command]]
-key = "prefix+r"
-type = "plugin_action"
-command = "persiyanov.reviewr.toggle-sidebar"
-description = "reviewr: toggle sidebar"
-EOF
-fi
 
 # ── 21. Secrets file ─────────────────────────────────────────────────────
 log "secrets"
@@ -384,15 +365,25 @@ else
     MISSING=$((MISSING + 1))
 fi
 
-HERDR_PLUGINS="$(herdr plugin list 2>/dev/null || true)"
-for plug in herdr-plus file-viewer reviewr; do
-    if printf '%s' "$HERDR_PLUGINS" | grep -q "$plug"; then
+# Filesystem check, not `herdr plugin list` — that needs a running server and
+# would report false MISSING here. These paths come from real install output.
+for plug in cloudmanic.herdr-plus herdr-file-viewer persiyanov.reviewr; do
+    if [ -d "$HOME/.config/herdr/plugins/config/$plug" ]; then
         printf '  ok      herdr plugin: %s\n' "$plug"
     else
         printf '  MISSING herdr plugin: %s\n' "$plug"
         MISSING=$((MISSING + 1))
     fi
 done
+
+# config.toml is yadm-managed; if the keybindings are absent the dotfiles repo
+# is out of date, not the script.
+if grep -q "cloudmanic.herdr-plus.projects" ~/.config/herdr/config.toml 2>/dev/null; then
+    printf '  ok      herdr keybindings (from dotfiles)\n'
+else
+    printf '  MISSING herdr keybindings — check config.toml in the dotfiles repo\n'
+    MISSING=$((MISSING + 1))
+fi
 
 echo ""
 echo "=================================================================="
@@ -411,11 +402,8 @@ echo "  3. Verify: moshi-hook status"
 echo "     Confirm status=paired, Moshi Pro attached, daemon running,"
 echo "     and herdr shows a real path (not 'not found')."
 echo "  4. Start a session with: herdr"
-echo "  5. Keybindings inside herdr (prefix = ctrl+b):"
+echo "  5. Keybindings inside herdr:"
 echo "       prefix+up  project picker (herdr-plus)"
-echo "       prefix+f   file viewer split"
+echo "       prefix+f   file viewer"
 echo "       prefix+r   reviewr sidebar"
-echo "  6. Confirm the reviewr action id — the keybinding in config.toml is"
-echo "     inferred, not documented:"
-echo "       herdr plugin action list --plugin persiyanov.reviewr"
 echo "=================================================================="
