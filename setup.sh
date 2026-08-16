@@ -11,13 +11,11 @@ warn() { echo "!!  $1" >&2; }
 # ── 0. Preflight ─────────────────────────────────────────────────────────
 [ "$(id -u)" -eq 0 ] || { echo "Must run as root."; exit 1; }
 
-# apt-get is the stable scripting interface; these vars stop needrestart
-# and debconf from blocking on interactive prompts mid-run.
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
-# ── 1. yadm — via apt, must come before anything needing the repo ─────────
+# ── 1. yadm ──────────────────────────────────────────────────────────────
 log "yadm"
 apt-get update -qq
 apt-get install -y -qq yadm
@@ -31,7 +29,7 @@ export PATH="$HOME/.local/bin:$PATH"
 grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' ~/.bashrc || \
     echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
 
-# ── 3. mosh (required by moshi-hook) ─────────────────────────────────────
+# ── 3. mosh ──────────────────────────────────────────────────────────────
 log "mosh"
 apt-get install -y -qq mosh
 
@@ -42,10 +40,6 @@ if ! command -v mise >/dev/null 2>&1; then
 fi
 grep -qxF 'eval "$(~/.local/bin/mise activate bash)"' ~/.bashrc || \
     echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
-# Do NOT source ~/.bashrc or eval `mise activate bash` here: both reference
-# interactive-only vars ($PS1, $PROMPT_COMMAND) that are unset in a script,
-# which under `set -u` kills the run silently. Shims give us the same PATH
-# access with no shell hooks.
 export PATH="$HOME/.local/share/mise/shims:$PATH"
 
 # ── 5. GitHub SSH key ────────────────────────────────────────────────────
@@ -53,8 +47,6 @@ log "GitHub SSH key"
 if [ ! -f ~/.ssh/github ]; then
     ssh-keygen -t ed25519 -C 'techstar.dev@hotmail.com' -f ~/.ssh/github -N ""
 fi
-# `ssh -T git@github.com` exits 1 even on SUCCESS (no shell access granted),
-# so the result must be captured and inspected, not used as a pipeline status.
 SSH_TEST="$(ssh -T -i ~/.ssh/github -o StrictHostKeyChecking=accept-new \
             git@github.com 2>&1 || true)"
 if ! printf '%s' "$SSH_TEST" | grep -q "successfully authenticated"; then
@@ -72,7 +64,7 @@ fi
 cd ~
 yadm alt
 
-# ── 7. System packages ───────────────────────────────────────────────────
+# ── 7. System packages — MUST run before step 8, which uses `git clone` ──
 log "apt packages"
 apt-get install -y -qq build-essential git curl wget unzip imagemagick \
     ffmpegthumbnailer libwebp-dev libxml2-dev libfreetype6-dev pkgconf \
@@ -80,7 +72,24 @@ apt-get install -y -qq build-essential git curl wget unzip imagemagick \
     libssl-dev zlib1g-dev libbz2-dev libreadline-dev libsqlite3-dev \
     libffi-dev liblzma-dev libncurses-dev jq poppler-utils
 
-# ── 8. awscli v2 ─────────────────────────────────────────────────────────
+# ── 8. Clone project repos ───────────────────────────────────────────────
+log "project repos"
+mkdir -p ~/Dev
+for repo in \
+    g5becks/oxlint-plugins \
+    g5becks/dox \
+    g5becks/errorset \
+    g5becks/StrataDb \
+    Takin-Profit/agentx
+do
+    name="${repo##*/}"
+    if [ ! -d ~/Dev/"$name" ]; then
+        GIT_SSH_COMMAND="ssh -i $HOME/.ssh/github" \
+            git clone "git@github.com:${repo}.git" ~/Dev/"$name"
+    fi
+done
+
+# ── 9. awscli v2 ─────────────────────────────────────────────────────────
 log "awscli"
 if ! command -v aws >/dev/null 2>&1; then
     ARCH="$(uname -m)"
@@ -97,13 +106,13 @@ if ! command -v aws >/dev/null 2>&1; then
     fi
 fi
 
-# ── 9. zimfw (needs zsh, installed above) ────────────────────────────────
+# ── 10. zimfw ────────────────────────────────────────────────────────────
 log "zimfw"
 if [ ! -d ~/.zim ]; then
     curl -fsSL https://raw.githubusercontent.com/zimfw/install/master/install.zsh | zsh
 fi
 
-# ── 10. bat-extras ───────────────────────────────────────────────────────
+# ── 11. bat-extras ───────────────────────────────────────────────────────
 log "bat-extras"
 if [ ! -f ~/.local/bin/batdiff ]; then
     git clone --depth 1 https://github.com/eth-p/bat-extras.git /tmp/bat-extras
@@ -111,7 +120,7 @@ if [ ! -f ~/.local/bin/batdiff ]; then
     rm -rf /tmp/bat-extras
 fi
 
-# ── 11. bats-core + helper libraries ─────────────────────────────────────
+# ── 12. bats-core + helper libraries ─────────────────────────────────────
 log "bats-core"
 if ! command -v bats >/dev/null 2>&1; then
     git clone --depth 1 https://github.com/bats-core/bats-core.git /tmp/bats-core
@@ -123,41 +132,37 @@ mkdir -p ~/.local/share/bats-libs
 [ -d ~/.local/share/bats-libs/bats-support ] || git clone --depth 1 https://github.com/bats-core/bats-support.git ~/.local/share/bats-libs/bats-support
 [ -d ~/.local/share/bats-libs/bats-file ]    || git clone --depth 1 https://github.com/bats-core/bats-file.git    ~/.local/share/bats-libs/bats-file
 
-# ── 12. bash-preexec ─────────────────────────────────────────────────────
+# ── 13. bash-preexec ─────────────────────────────────────────────────────
 log "bash-preexec"
 [ -f ~/.bash-preexec.sh ] || curl -fsSL -o ~/.bash-preexec.sh \
     https://raw.githubusercontent.com/rcaloras/bash-preexec/master/bash-preexec.sh
 grep -qxF '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' ~/.bashrc || \
     echo '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' >> ~/.bashrc
 
-# ── 13. Docker ───────────────────────────────────────────────────────────
+# ── 14. Docker ───────────────────────────────────────────────────────────
 log "docker"
 if ! command -v docker >/dev/null 2>&1; then
     curl -fsSL https://get.docker.com | sh
 fi
 
-# ── 14. Claude Code (native installer, not mise-managed — the npm
-#        distribution is deprecated by Anthropic as of v2.1.15) ───────────
+# ── 15. Claude Code (native installer) ───────────────────────────────────
 log "claude code"
 if ! command -v claude >/dev/null 2>&1; then
     curl -fsSL https://claude.ai/install.sh | bash
 fi
 
-# ── 15. Default shell ────────────────────────────────────────────────────
+# ── 16. Default shell ────────────────────────────────────────────────────
 log "default shell"
 ZSH_PATH="$(command -v zsh)"
 grep -qxF "$ZSH_PATH" /etc/shells || echo "$ZSH_PATH" >> /etc/shells
-# Compare against the shell actually registered in /etc/passwd — $SHELL is
-# inherited from session start and goes stale immediately after chsh.
 CURRENT_SHELL="$(getent passwd "$(id -un)" | cut -d: -f7)"
 [ "$CURRENT_SHELL" = "$ZSH_PATH" ] || chsh -s "$ZSH_PATH"
 
-# ── 16. mise-managed tools (yazi, helix, herdr, gh, opencode, bun, …) ────
+# ── 17. mise-managed tools ───────────────────────────────────────────────
 log "mise install"
 mise install
 
-# ── 17. Yazi plugins — MUST run after `mise install`, since `ya` ships
-#        with yazi and does not exist before that step ────────────────────
+# ── 18. Yazi plugins ──────────────────────────────────────────────────────
 log "yazi plugins"
 mkdir -p ~/.config/yazi/plugins
 for pkg in \
@@ -175,15 +180,9 @@ for pkg in \
     qwjyh/relative-path \
     barbanevosa/linemode-plus
 do
-    # "already exists in package.toml" exits non-zero on a re-run, which
-    # under `set -e` silently terminated the entire script.
     ya pkg add "$pkg" || true
 done
 
-# vscode-git-gutter / vscode-git-colors: `ya pkg add` fails on these two
-# specifically (LICENSE copy error — a layout quirk in the source repo),
-# so they are cloned directly and live outside package.toml. This means
-# `ya pkg upgrade` will never update them; re-run this block manually.
 if [ ! -f ~/.config/yazi/plugins/vscode-git-gutter.yazi/main.lua ] || \
    [ ! -f ~/.config/yazi/plugins/vscode-git-colors.yazi/main.lua ]; then
     rm -rf /tmp/yazi-plugins-src
@@ -193,7 +192,7 @@ if [ ! -f ~/.config/yazi/plugins/vscode-git-gutter.yazi/main.lua ] || \
     rm -rf /tmp/yazi-plugins-src
 fi
 
-# ── 18. Moshi agent hooks + persistent daemon ────────────────────────────
+# ── 19. Moshi agent hooks + persistent daemon ────────────────────────────
 log "moshi-hook agent hooks + daemon"
 HOOK_STATUS="$(moshi-hook status 2>/dev/null || true)"
 if ! printf '%s' "$HOOK_STATUS" | grep -q "paired"; then
@@ -201,16 +200,10 @@ if ! printf '%s' "$HOOK_STATUS" | grep -q "paired"; then
     read -r -p "Paste token here: " MOSHI_TOKEN < /dev/tty
     moshi-hook pair --token "$MOSHI_TOKEN"
 fi
-# These exit non-zero when already configured — same silent-death pattern.
 moshi-hook install --target claude   || true
 moshi-hook install --target opencode || true
-
-# Persistent daemon via moshi-hook's own systemd --user integration —
-# NOT a hand-rolled system-scope unit, which was a real mistake to repeat.
 moshi-hook service install || true
 
-# The daemon starts with a minimal PATH and cannot see mise-managed tools
-# (herdr specifically) without this override.
 mkdir -p "$HOME/.config/systemd/user/moshi-hook.service.d"
 cat > "$HOME/.config/systemd/user/moshi-hook.service.d/override.conf" <<EOF
 [Service]
@@ -219,19 +212,73 @@ EOF
 
 systemctl --user daemon-reload      || warn "systemctl --user unavailable; run daemon-reload manually"
 systemctl --user restart moshi-hook || warn "could not restart moshi-hook; check 'systemctl --user status moshi-hook'"
-
-# Without lingering, the --user service stops when the SSH/Mosh session that
-# started it fully disconnects — which happens constantly on mobile.
 loginctl enable-linger "$(id -un)" || true
 
-# ── 19. Secrets file ─────────────────────────────────────────────────────
+# ── 20. herdr-plus plugin + project workspaces ───────────────────────────
+log "herdr-plus"
+herdr plugin install cloudmanic/herdr-plus --yes || true
+herdr integration install claude   || true
+herdr integration install opencode || true
+
+# Hardcoded, not resolved via `herdr plugin config-dir`: that command
+# resolves differently depending on whether a herdr server is already
+# running, and falls back to a DIFFERENT path (~/.config/herdr-plus/) when
+# run standalone — exactly the state this script runs in. This exact path
+# is confirmed identical across the plugin's own README and docs site.
+HERDR_PLUS_DIR="$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus"
+mkdir -p "$HERDR_PLUS_DIR/projects"
+
+for name in oxlint-plugins dox errorset StrataDb agentx; do
+    cat > "$HERDR_PLUS_DIR/projects/${name}.toml" <<EOF
+name = "${name}"
+working_dir = "~/Dev/${name}"
+
+[[tabs]]
+name = "editor"
+command = "hx ."
+
+[[tabs]]
+name = "shell"
+
+[[tabs]]
+name = "claude"
+command = "claude"
+
+[[tabs]]
+name = "opencode"
+command = "opencode"
+
+[[tabs]]
+name = "yazi"
+command = "yazi"
+
+[[tabs]]
+name = "lazygit"
+command = "lazygit"
+EOF
+done
+
+mkdir -p ~/.config/herdr
+if [ ! -f ~/.config/herdr/config.toml ] || \
+   ! grep -q "cloudmanic.herdr-plus.projects" ~/.config/herdr/config.toml; then
+    cat >> ~/.config/herdr/config.toml <<'EOF'
+
+[[keys.command]]
+key = "prefix+up"
+type = "plugin_action"
+command = "cloudmanic.herdr-plus.projects"
+description = "herdr-plus: projects"
+EOF
+fi
+
+# ── 21. Secrets file ─────────────────────────────────────────────────────
 log "secrets"
 if [ ! -f ~/.zshrc_secrets ]; then
     touch ~/.zshrc_secrets
     echo "Created empty ~/.zshrc_secrets — add your API keys/tokens here."
 fi
 
-# ── 20. Verify ───────────────────────────────────────────────────────────
+# ── 22. Verify ───────────────────────────────────────────────────────────
 log "verification"
 MISSING=0
 for cmd in yadm mosh mise git zsh docker claude aws bats yazi ya hx herdr gh opencode bun; do
@@ -243,12 +290,28 @@ for cmd in yadm mosh mise git zsh docker claude aws bats yazi ya hx herdr gh ope
     fi
 done
 
+for name in oxlint-plugins dox errorset StrataDb agentx; do
+    if [ -d ~/Dev/"$name" ]; then
+        printf '  ok      ~/Dev/%s\n' "$name"
+    else
+        printf '  MISSING ~/Dev/%s\n' "$name"
+        MISSING=$((MISSING + 1))
+    fi
+done
+
+if [ -f "$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus/projects/oxlint-plugins.toml" ]; then
+    printf '  ok      herdr-plus project templates\n'
+else
+    printf '  MISSING herdr-plus project templates\n'
+    MISSING=$((MISSING + 1))
+fi
+
 echo ""
 echo "=================================================================="
 if [ "$MISSING" -eq 0 ]; then
-    echo " Setup complete — all tools present."
+    echo " Setup complete — all tools, repos, and templates present."
 else
-    echo " Setup finished with $MISSING missing tool(s) — see list above."
+    echo " Setup finished with $MISSING missing item(s) — see list above."
 fi
 echo "=================================================================="
 echo "Next steps (manual, on purpose):"
@@ -260,4 +323,5 @@ echo "  3. Verify: moshi-hook status"
 echo "     Confirm status=paired, Moshi Pro attached, daemon running,"
 echo "     and herdr shows a real path (not 'not found')."
 echo "  4. Start a session with: herdr"
+echo "  5. Press prefix+up in Herdr to open the project picker (herdr-plus)."
 echo "=================================================================="
