@@ -1,7 +1,7 @@
 [[keys.command]]
 key = "prefix+up"
 type = "plugin_action"
-command = "cloudmanic.herdr-plus.projects-ui"
+command = "cloudmanic.herdr-plus.projects"
 description = "herdr-plus: projects"
 
 [[keys.command]]
