@@ -1,3 +1,6 @@
+[keys]
+close_tab = "prefix+t"
+
 [[keys.command]]
 key = "prefix+up"
 type = "plugin_action"
