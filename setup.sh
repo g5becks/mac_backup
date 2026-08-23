@@ -106,7 +106,22 @@ do
 done
 cd ~
 
-# ── 8b. Trust project mise configs — MUST follow step 8 ──────────────────
+# ── 8b. Fix deprecated mise config keys — MUST precede trust in step 8c ──
+# `experimental_monorepo_root` was renamed to `monorepo_root`; the old key
+# still works but prints a WARN on every shell start and is slated for
+# removal in mise 2027.12.0. Fixed here, before trusting, so the trust
+# stamp is set on the final file content rather than being invalidated by
+# an edit made after trusting.
+log "fix deprecated mise config keys"
+shopt -s nullglob
+for f in ~/Dev/*/mise.toml ~/Dev/*/.mise.toml; do
+    if grep -q 'experimental_monorepo_root' "$f"; then
+        sed -i 's/experimental_monorepo_root/monorepo_root/' "$f"
+    fi
+done
+shopt -u nullglob
+
+# ── 8c. Trust project mise configs — MUST follow step 8b ─────────────────
 # Each project may ship its own mise.toml. The first `cd` into an untrusted
 # one — which herdr-plus does automatically when opening a workspace — makes
 # mise refuse to build PATH shims for that shell. That cascades: every
