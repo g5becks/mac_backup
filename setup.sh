@@ -106,6 +106,27 @@ do
 done
 cd ~
 
+# ── 8b. Trust project mise configs — MUST follow step 8 ──────────────────
+# Each project may ship its own mise.toml. The first `cd` into an untrusted
+# one — which herdr-plus does automatically when opening a workspace — makes
+# mise refuse to build PATH shims for that shell. That cascades: every
+# mise-managed tool referenced in .zshrc (starship, zoxide, mcfly, carapace,
+# uv, uvx, hx) reports "command not found", making it look like the terminal
+# session itself is broken. Trusting up front prevents the whole class.
+#
+# nullglob is required: with no matches the glob would expand to its own
+# literal text, `mise trust` would fail on a nonexistent path, and `set -e`
+# would kill the run.
+#
+# NOTE: this only covers configs present at setup time. A project added to
+# ~/Dev later still needs a manual `mise trust` on first open.
+log "trust project mise configs"
+shopt -s nullglob
+for f in ~/Dev/*/mise.toml ~/Dev/*/.mise.toml; do
+    mise trust "$f" || warn "could not trust $f"
+done
+shopt -u nullglob
+
 # ── 9. awscli v2 ─────────────────────────────────────────────────────────
 log "awscli"
 if ! command -v aws >/dev/null 2>&1; then
@@ -357,6 +378,21 @@ for name in oxlint-plugins dox errorset StrataDb agentx; do
         MISSING=$((MISSING + 1))
     fi
 done
+
+# Any project mise.toml still untrusted will break every mise-managed tool
+# the moment herdr-plus opens that workspace — surface it here, not there.
+UNTRUSTED=0
+shopt -s nullglob
+for f in ~/Dev/*/mise.toml ~/Dev/*/.mise.toml; do
+    if mise trust --show "$f" >/dev/null 2>&1; then
+        printf '  ok      trusted %s\n' "$f"
+    else
+        printf '  UNTRUSTED %s — run: mise trust %s\n' "$f" "$f"
+        UNTRUSTED=$((UNTRUSTED + 1))
+    fi
+done
+shopt -u nullglob
+MISSING=$((MISSING + UNTRUSTED))
 
 if [ -f "$HERDR_PLUS_DIR/projects/oxlint-plugins.toml" ]; then
     printf '  ok      herdr-plus project templates\n'
