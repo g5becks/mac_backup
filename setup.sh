@@ -15,9 +15,6 @@ export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
 
-# Secrets (GITHUB_TOKEN especially) must load BEFORE `mise install` — without
-# it, unauthenticated GitHub API calls hit a 60/hour rate limit and every
-# `github:` backend tool fails at once.
 [ -f "$HOME/.zshrc_secrets" ] && . "$HOME/.zshrc_secrets"
 
 # ── 1. yadm ──────────────────────────────────────────────────────────────
@@ -45,9 +42,6 @@ if ! command -v mise >/dev/null 2>&1; then
 fi
 grep -qxF 'eval "$(~/.local/bin/mise activate bash)"' ~/.bashrc || \
     echo 'eval "$(~/.local/bin/mise activate bash)"' >> ~/.bashrc
-# Do NOT source ~/.bashrc or eval `mise activate bash`: both reference
-# interactive-only vars ($PS1, $PROMPT_COMMAND) that are unset in a script,
-# which under `set -u` kills the run silently. Shims give the same PATH access.
 export PATH="$HOME/.local/share/mise/shims:$PATH"
 
 # ── 5. GitHub SSH key ────────────────────────────────────────────────────
@@ -55,8 +49,6 @@ log "GitHub SSH key"
 if [ ! -f ~/.ssh/github ]; then
     ssh-keygen -t ed25519 -C 'techstar.dev@hotmail.com' -f ~/.ssh/github -N ""
 fi
-# `ssh -T git@github.com` exits 1 even on SUCCESS (no shell access granted),
-# so capture and inspect the output rather than testing the exit status.
 SSH_TEST="$(ssh -T -i ~/.ssh/github -o StrictHostKeyChecking=accept-new \
             git@github.com 2>&1 || true)"
 if ! printf '%s' "$SSH_TEST" | grep -q "successfully authenticated"; then
@@ -66,8 +58,6 @@ if ! printf '%s' "$SSH_TEST" | grep -q "successfully authenticated"; then
 fi
 
 # ── 6. Clone dotfiles ────────────────────────────────────────────────────
-# This also delivers ~/.config/herdr/config.toml, which is yadm-tracked.
-# Nothing later in this script writes to that file — see step 20.
 log "dotfiles"
 if [ ! -f "$HOME/.zshrc##os.Linux" ]; then
     GIT_SSH_COMMAND="ssh -i $HOME/.ssh/github" \
@@ -75,8 +65,6 @@ if [ ! -f "$HOME/.zshrc##os.Linux" ]; then
 fi
 cd ~
 yadm alt
-
-# Dotfiles may have brought in a secrets file that did not exist at step 0.
 [ -f "$HOME/.zshrc_secrets" ] && . "$HOME/.zshrc_secrets"
 
 # ── 7. System packages — MUST precede step 8, which uses `git clone` ─────
@@ -107,11 +95,6 @@ done
 cd ~
 
 # ── 8b. Fix deprecated mise config keys — MUST precede trust in step 8c ──
-# `experimental_monorepo_root` was renamed to `monorepo_root`; the old key
-# still works but prints a WARN on every shell start and is slated for
-# removal in mise 2027.12.0. Fixed here, before trusting, so the trust
-# stamp is set on the final file content rather than being invalidated by
-# an edit made after trusting.
 log "fix deprecated mise config keys"
 shopt -s nullglob
 for f in ~/Dev/*/mise.toml ~/Dev/*/.mise.toml; do
@@ -122,19 +105,6 @@ done
 shopt -u nullglob
 
 # ── 8c. Trust project mise configs — MUST follow step 8b ─────────────────
-# Each project may ship its own mise.toml. The first `cd` into an untrusted
-# one — which herdr-plus does automatically when opening a workspace — makes
-# mise refuse to build PATH shims for that shell. That cascades: every
-# mise-managed tool referenced in .zshrc (starship, zoxide, mcfly, carapace,
-# uv, uvx, hx) reports "command not found", making it look like the terminal
-# session itself is broken. Trusting up front prevents the whole class.
-#
-# nullglob is required: with no matches the glob would expand to its own
-# literal text, `mise trust` would fail on a nonexistent path, and `set -e`
-# would kill the run.
-#
-# NOTE: this only covers configs present at setup time. A project added to
-# ~/Dev later still needs a manual `mise trust` on first open.
 log "trust project mise configs"
 shopt -s nullglob
 for f in ~/Dev/*/mise.toml ~/Dev/*/.mise.toml; do
@@ -196,14 +166,11 @@ grep -qxF '[[ -f ~/.bash-preexec.sh ]] && source ~/.bash-preexec.sh' ~/.bashrc |
 
 # ── 14. Docker ───────────────────────────────────────────────────────────
 log "docker"
-# get.docker.com runs its own `set -e` and exits non-zero when it detects an
-# existing install — which under our `set -e` would kill the whole script.
 if ! command -v docker >/dev/null 2>&1; then
     curl -fsSL https://get.docker.com | sh || warn "docker install returned non-zero"
 fi
 
-# ── 15. Claude Code (native installer — the npm distribution is deprecated
-#        by Anthropic as of v2.1.15) ──────────────────────────────────────
+# ── 15. Claude Code (native installer) ────────────────────────────────────
 log "claude code"
 if ! command -v claude >/dev/null 2>&1; then
     curl -fsSL https://claude.ai/install.sh | bash || warn "claude install returned non-zero"
@@ -213,15 +180,8 @@ fi
 log "default shell"
 ZSH_PATH="$(command -v zsh)"
 grep -qxF "$ZSH_PATH" /etc/shells || echo "$ZSH_PATH" >> /etc/shells
-# Compare against /etc/passwd — $SHELL is inherited from session start and
-# goes stale immediately after chsh.
 CURRENT_SHELL="$(getent passwd "$(id -un)" | cut -d: -f7)"
 [ "$CURRENT_SHELL" = "$ZSH_PATH" ] || chsh -s "$ZSH_PATH"
-
-# herdr-file-viewer's `e` key reads $EDITOR from the HERDR SERVER's
-# environment, not your interactive shell. Under mosh the server never
-# sources .zshrc, so `e` silently does nothing. ~/.profile is the
-# login-shell path mosh actually reads.
 grep -qxF 'export EDITOR=hx' ~/.profile 2>/dev/null || \
     echo 'export EDITOR=hx' >> ~/.profile
 
@@ -252,15 +212,9 @@ for pkg in \
     qwjyh/relative-path \
     barbanevosa/linemode-plus
 do
-    # "already exists in package.toml" exits non-zero on a re-run, which
-    # under `set -e` silently terminated the entire script.
     ya pkg add "$pkg" || true
 done
 
-# vscode-git-gutter / vscode-git-colors: `ya pkg add` fails on these two
-# (LICENSE copy error — a layout quirk in the source repo), so they are
-# cloned directly and live outside package.toml. `ya pkg upgrade` will never
-# update them; re-run this block manually to refresh.
 if [ ! -f ~/.config/yazi/plugins/vscode-git-gutter.yazi/main.lua ] || \
    [ ! -f ~/.config/yazi/plugins/vscode-git-colors.yazi/main.lua ]; then
     rm -rf /tmp/yazi-plugins-src
@@ -278,16 +232,10 @@ if ! printf '%s' "$HOOK_STATUS" | grep -q "paired"; then
     read -r -p "Paste token here: " MOSHI_TOKEN < /dev/tty
     moshi-hook pair --token "$MOSHI_TOKEN"
 fi
-# These exit non-zero when already configured — same silent-death pattern.
 moshi-hook install --target claude   || true
 moshi-hook install --target opencode || true
-
-# Persistent daemon via moshi-hook's own systemd --user integration — NOT a
-# hand-rolled system-scope unit, which was a real mistake worth not repeating.
 moshi-hook service install || true
 
-# The daemon starts with a minimal PATH and cannot see mise-managed tools
-# (herdr specifically) without this override.
 mkdir -p "$HOME/.config/systemd/user/moshi-hook.service.d"
 cat > "$HOME/.config/systemd/user/moshi-hook.service.d/override.conf" <<EOF
 [Service]
@@ -296,38 +244,18 @@ EOF
 
 systemctl --user daemon-reload      || warn "systemctl --user unavailable; run daemon-reload manually"
 systemctl --user restart moshi-hook || warn "could not restart moshi-hook; check 'systemctl --user status moshi-hook'"
-
-# Without lingering, the --user service stops when the SSH/Mosh session that
-# started it fully disconnects — which happens constantly on mobile.
 loginctl enable-linger "$(id -un)" || true
 
 # ── 20. Herdr plugins + project workspaces ───────────────────────────────
 log "herdr plugins"
-# --yes suppresses the interactive trust preview; </dev/null guarantees the
-# command can never block on input even if something else tries to read stdin.
 herdr plugin install cloudmanic/herdr-plus --yes      </dev/null || true
 herdr plugin install smarzban/herdr-file-viewer --yes </dev/null || true
 herdr plugin install persiyanov/herdr-reviewr --yes   </dev/null || true
 
-# Herdr integrations write into each agent's own config directory and fail
-# when it does not exist yet — likely on a fresh box where neither agent has
-# been run even once.
 mkdir -p ~/.claude ~/.config/opencode
 herdr integration install claude   </dev/null || true
 herdr integration install opencode </dev/null || true
 
-# NOTE: ~/.config/herdr/config.toml is yadm-tracked and arrives via step 6.
-# This script deliberately does NOT write to it — appending here would be
-# wiped by the next `yadm reset --hard` and duplicated on every re-run.
-# Keybindings (verified against the installed plugins' actual action ids):
-#   prefix+up  cloudmanic.herdr-plus.projects
-#   prefix+f   herdr-file-viewer.open-file-viewer
-#   prefix+r   persiyanov.reviewr.toggle
-
-# Path confirmed from real install output:
-#   "Config: /root/.config/herdr/plugins/config/cloudmanic.herdr-plus"
-# Not resolved via `herdr plugin config-dir`, which falls back to a different
-# path when no herdr server is running — exactly this script's state.
 HERDR_PLUS_DIR="$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus"
 mkdir -p "$HERDR_PLUS_DIR/projects"
 
@@ -369,14 +297,72 @@ if [ ! -f ~/.zshrc_secrets ]; then
     echo "GITHUB_TOKEN belongs here; mise needs it to avoid GitHub rate limits."
 fi
 
-# ── 22. Verify ───────────────────────────────────────────────────────────
+# ── 22. cloudflared ───────────────────────────────────────────────────────
+log "cloudflared"
+if ! command -v cloudflared >/dev/null 2>&1; then
+    mkdir -p --mode=0755 /usr/share/keyrings
+    curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg \
+        -o /usr/share/keyrings/cloudflare-main.gpg
+    echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' \
+        > /etc/apt/sources.list.d/cloudflared.list
+    apt-get update -qq
+    apt-get install -y -qq cloudflared
+fi
+
+# ── 23. Cloudflare Tunnel — persistent dev-preview hostname ──────────────
+# Domain confirmed on Cloudflare's nameservers (070717.uk, DNS Setup: Full).
+# The existing root A/AAAA/MX/TXT records are untouched — this only adds a
+# new CNAME for the subdomain below via `tunnel route dns`.
+TUNNEL_NAME="agentx-dev"
+TUNNEL_DOMAIN="agentx.070717.uk"
+TUNNEL_PORT="5173"     # Vite client dev server
+
+log "cloudflared login"
+if [ ! -f ~/.cloudflared/cert.pem ]; then
+    cloudflared tunnel login
+    echo "If a URL didn't open automatically above, copy it and open it"
+    echo "in any browser (your phone is fine), then authorize 070717.uk."
+    read -r -p "Press Enter once authorized... " _ < /dev/tty
+fi
+
+log "cloudflared tunnel create"
+if ! cloudflared tunnel list -o json 2>/dev/null | jq -e --arg n "$TUNNEL_NAME" \
+    'any(.[]; .name == $n)' >/dev/null; then
+    cloudflared tunnel create "$TUNNEL_NAME"
+fi
+TUNNEL_UUID="$(cloudflared tunnel list -o json | jq -r --arg n "$TUNNEL_NAME" \
+    '.[] | select(.name == $n) | .id')"
+
+# Created once, never overwritten — same principle as herdr's config.toml.
+mkdir -p /etc/cloudflared
+if [ ! -f /etc/cloudflared/config.yml ]; then
+    cat > /etc/cloudflared/config.yml <<EOF
+tunnel: ${TUNNEL_UUID}
+credentials-file: /root/.cloudflared/${TUNNEL_UUID}.json
+
+ingress:
+  - hostname: ${TUNNEL_DOMAIN}
+    service: http://localhost:${TUNNEL_PORT}
+  - service: http_status:404
+EOF
+fi
+
+log "cloudflared route dns"
+cloudflared tunnel route dns "$TUNNEL_NAME" "$TUNNEL_DOMAIN" || \
+    warn "route dns failed or already exists — check manually if the hostname doesn't resolve"
+
+log "cloudflared service install"
+if ! systemctl is-enabled cloudflared >/dev/null 2>&1; then
+    cloudflared service install
+fi
+systemctl restart cloudflared || warn "could not restart cloudflared; check systemctl status cloudflared"
+
+# ── 24. Verify ───────────────────────────────────────────────────────────
 log "verification"
-# Ensure both install locations are visible regardless of what each
-# installer did to PATH in this session.
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
 MISSING=0
-for cmd in yadm mosh mise git zsh docker claude aws bats yazi ya hx herdr gh opencode bun; do
+for cmd in yadm mosh mise git zsh docker claude aws bats yazi ya hx herdr gh opencode bun cloudflared; do
     if command -v "$cmd" >/dev/null 2>&1; then
         printf '  ok      %s\n' "$cmd"
     else
@@ -394,8 +380,6 @@ for name in oxlint-plugins dox errorset StrataDb agentx; do
     fi
 done
 
-# Any project mise.toml still untrusted will break every mise-managed tool
-# the moment herdr-plus opens that workspace — surface it here, not there.
 UNTRUSTED=0
 shopt -s nullglob
 for f in ~/Dev/*/mise.toml ~/Dev/*/.mise.toml; do
@@ -416,8 +400,6 @@ else
     MISSING=$((MISSING + 1))
 fi
 
-# Filesystem check, not `herdr plugin list` — that needs a running server and
-# would report false MISSING here. These paths come from real install output.
 for plug in cloudmanic.herdr-plus herdr-file-viewer persiyanov.reviewr; do
     if [ -d "$HOME/.config/herdr/plugins/config/$plug" ]; then
         printf '  ok      herdr plugin: %s\n' "$plug"
@@ -427,12 +409,24 @@ for plug in cloudmanic.herdr-plus herdr-file-viewer persiyanov.reviewr; do
     fi
 done
 
-# config.toml is yadm-managed; if the keybindings are absent the dotfiles repo
-# is out of date, not the script.
 if grep -q "cloudmanic.herdr-plus.projects" ~/.config/herdr/config.toml 2>/dev/null; then
     printf '  ok      herdr keybindings (from dotfiles)\n'
 else
     printf '  MISSING herdr keybindings — check config.toml in the dotfiles repo\n'
+    MISSING=$((MISSING + 1))
+fi
+
+if [ -f /etc/cloudflared/config.yml ]; then
+    printf '  ok      cloudflared tunnel config\n'
+else
+    printf '  MISSING cloudflared tunnel config\n'
+    MISSING=$((MISSING + 1))
+fi
+
+if systemctl is-active cloudflared >/dev/null 2>&1; then
+    printf '  ok      cloudflared service active\n'
+else
+    printf '  MISSING cloudflared service not active — check systemctl status cloudflared\n'
     MISSING=$((MISSING + 1))
 fi
 
@@ -450,11 +444,11 @@ echo "  2. Pair this server with Moshi on each device you want SSH access from:"
 echo "       moshi-hook host setup"
 echo "     Scan the printed QR code from the Moshi app. Repeat per device."
 echo "  3. Verify: moshi-hook status"
-echo "     Confirm status=paired, Moshi Pro attached, daemon running,"
-echo "     and herdr shows a real path (not 'not found')."
 echo "  4. Start a session with: herdr"
 echo "  5. Keybindings inside herdr:"
 echo "       prefix+up  project picker (herdr-plus)"
 echo "       prefix+f   file viewer"
 echo "       prefix+r   reviewr sidebar"
+echo "  6. Once the Vite dev server is running, https://agentx.070717.uk"
+echo "     previews it permanently — same URL every time, survives reboots."
 echo "=================================================================="
