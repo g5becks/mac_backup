@@ -8,6 +8,12 @@ set -euo pipefail
 log()  { echo -e "\n==> $1"; }
 warn() { echo "!!  $1" >&2; }
 
+# Case-insensitive lookup of a project folder under ~/Dev.
+# Prints the real path, or nothing if there is no match.
+find_project_dir() {
+    find "$HOME/Dev" -maxdepth 1 -mindepth 1 -type d -iname "$1" -print -quit 2>/dev/null
+}
+
 # ── 0. Preflight ─────────────────────────────────────────────────────────
 [ "$(id -u)" -eq 0 ] || { echo "Must run as root."; exit 1; }
 
@@ -76,6 +82,8 @@ apt-get install -y -qq build-essential git curl wget unzip imagemagick \
     libffi-dev liblzma-dev libncurses-dev jq poppler-utils
 
 # ── 8. Clone project repos ───────────────────────────────────────────────
+# Skips any repo whose folder already exists, matched case-insensitively,
+# so a hand-created ~/Dev/loadveto is never cloned over a second time.
 log "project repos"
 mkdir -p ~/Dev
 for repo in \
@@ -83,10 +91,11 @@ for repo in \
     g5becks/dox \
     g5becks/errorset \
     g5becks/StrataDb \
-    Takin-Profit/agentx
+    Takin-Profit/agentx \
+    Takin-Profit/LoadVeto
 do
     name="${repo##*/}"
-    if [ ! -d ~/Dev/"$name" ]; then
+    if [ -z "$(find_project_dir "$name")" ]; then
         GIT_SSH_COMMAND="ssh -i $HOME/.ssh/github" \
             git clone "git@github.com:${repo}.git" ~/Dev/"$name" || \
             warn "failed to clone ${repo}"
@@ -259,10 +268,14 @@ herdr integration install opencode </dev/null || true
 HERDR_PLUS_DIR="$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus"
 mkdir -p "$HERDR_PLUS_DIR/projects"
 
-for name in oxlint-plugins dox errorset StrataDb agentx; do
+for name in oxlint-plugins dox errorset StrataDb agentx LoadVeto; do
+    # working_dir uses the folder's real on-disk name, so a lowercase
+    # hand-made ~/Dev/loadveto and a cloned ~/Dev/LoadVeto both work.
+    dir="$(find_project_dir "$name" || true)"
+    dirname="$(basename "${dir:-$HOME/Dev/$name}")"
     cat > "$HERDR_PLUS_DIR/projects/${name}.toml" <<EOF
 name = "${name}"
-working_dir = "~/Dev/${name}"
+working_dir = "~/Dev/${dirname}"
 
 [[tabs]]
 name = "editor"
@@ -288,6 +301,13 @@ name = "lazygit"
 command = "lazygit"
 EOF
 done
+
+# An earlier hand-made lowercase template would show up as a second,
+# duplicate "loadveto" entry in the picker. Remove it once the real one exists.
+if [ -f "$HERDR_PLUS_DIR/projects/LoadVeto.toml" ] && \
+   [ -f "$HERDR_PLUS_DIR/projects/loadveto.toml" ]; then
+    rm -f "$HERDR_PLUS_DIR/projects/loadveto.toml"
+fi
 
 # ── 21. Secrets file ─────────────────────────────────────────────────────
 log "secrets"
@@ -371,9 +391,10 @@ for cmd in yadm mosh mise git zsh docker claude aws bats yazi ya hx herdr gh ope
     fi
 done
 
-for name in oxlint-plugins dox errorset StrataDb agentx; do
-    if [ -d ~/Dev/"$name" ]; then
-        printf '  ok      ~/Dev/%s\n' "$name"
+for name in oxlint-plugins dox errorset StrataDb agentx LoadVeto; do
+    found="$(find_project_dir "$name" || true)"
+    if [ -n "$found" ]; then
+        printf '  ok      %s\n' "$found"
     else
         printf '  MISSING ~/Dev/%s\n' "$name"
         MISSING=$((MISSING + 1))
@@ -397,6 +418,13 @@ if [ -f "$HERDR_PLUS_DIR/projects/oxlint-plugins.toml" ]; then
     printf '  ok      herdr-plus project templates\n'
 else
     printf '  MISSING herdr-plus project templates\n'
+    MISSING=$((MISSING + 1))
+fi
+
+if [ -f "$HERDR_PLUS_DIR/projects/LoadVeto.toml" ]; then
+    printf '  ok      herdr-plus LoadVeto template\n'
+else
+    printf '  MISSING herdr-plus LoadVeto template\n'
     MISSING=$((MISSING + 1))
 fi
 
