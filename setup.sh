@@ -261,9 +261,10 @@ herdr plugin install cloudmanic/herdr-plus --yes      </dev/null || true
 herdr plugin install smarzban/herdr-file-viewer --yes </dev/null || true
 herdr plugin install persiyanov/herdr-reviewr --yes   </dev/null || true
 
-mkdir -p ~/.claude ~/.config/opencode
+mkdir -p ~/.claude ~/.config/opencode ~/.codex
 herdr integration install claude   </dev/null || true
 herdr integration install opencode </dev/null || true
+herdr integration install codex </dev/null || true
 
 HERDR_PLUS_DIR="$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus"
 mkdir -p "$HERDR_PLUS_DIR/projects"
@@ -289,8 +290,8 @@ name = "claude"
 command = "claude"
 
 [[tabs]]
-name = "opencode"
-command = "opencode"
+name = "codex"
+command = "codex"
 
 [[tabs]]
 name = "yazi"
@@ -382,7 +383,7 @@ log "verification"
 export PATH="$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
 
 MISSING=0
-for cmd in yadm mosh mise git zsh docker claude aws bats yazi ya hx herdr gh opencode bun cloudflared; do
+for cmd in yadm mosh mise git zsh docker claude aws bats yazi ya hx herdr gh opencode codex bun cloudflared; do
     if command -v "$cmd" >/dev/null 2>&1; then
         printf '  ok      %s\n' "$cmd"
     else
