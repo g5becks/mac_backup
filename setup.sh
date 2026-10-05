@@ -265,6 +265,8 @@ mkdir -p ~/.claude ~/.config/opencode ~/.codex
 herdr integration install claude   </dev/null || true
 herdr integration install opencode </dev/null || true
 herdr integration install codex </dev/null || true
+grep -q daemon_auto_start ~/.codex/config.toml || sed -i "/features/a daemon_auto_start = false" ~/.codex/config.toml
+moshi-hook install </dev/null || true
 
 HERDR_PLUS_DIR="$HOME/.config/herdr/plugins/config/cloudmanic.herdr-plus"
 mkdir -p "$HERDR_PLUS_DIR/projects"
