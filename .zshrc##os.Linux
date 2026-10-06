@@ -103,9 +103,7 @@ function claudius() {
 
 function glm() {
     local GLM_ANTHROPIC_BASE="https://api.z.ai/api/anthropic"
-    local GLM_TOKEN="d519c8e6f93e4fe9993aad16173ad809.NCkpErdYkHg3qmHj"
     local GLM_CFG="$HOME/.glm"
-    ANTHROPIC_BASE_URL="$GLM_ANTHROPIC_BASE" ANTHROPIC_AUTH_TOKEN="$GLM_TOKEN" CLAUDE_CONFIG_DIR="$GLM_CFG" command claude "$@"
 }
 
 # GitHub Copilot CLI functions with isolated configs
@@ -151,3 +149,5 @@ fi
 function gi() { curl -sLw "\n" https://www.toptal.com/developers/gitignore/api/$@ ;}
 
 zstyle ':completion:*' menu select
+
+export MOSHI_HERDR_PATH=/root/.local/share/mise/installs/herdr/0.8.0/herdr
